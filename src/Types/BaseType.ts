@@ -31,7 +31,7 @@ export default class BaseType{
         this.form.append(element, this.load);
         this.buttons.success = null;
         this.buttons.cancel = null;
-        if(this.context.options.showbuttons){
+        if(this.context.options.showButtons){
             this.buttons.success = this.createButtonSuccess();
             this.buttons.cancel = this.createButtonCancel();
             this.form.append(this.buttons.success, this.buttons.cancel);
@@ -44,16 +44,15 @@ export default class BaseType{
     createContainerError(): HTMLDivElement
     {
         const div = document.createElement(`div`);
-        div.classList.add("text-danger", "fst-italic", "mb-2", "fw-bold");
-        div.style.display = "none";
+        div.classList.add("dark-editable-error", "text-danger", "fst-italic", "mb-2", "fw-bold");
+        div.hidden = true;
         return div;
     }
 
     createContainerForm(): HTMLFormElement
     {
         const form = document.createElement(`form`);
-        form.classList.add("d-flex", "align-items-start");
-        form.style.gap = "20px";
+        form.classList.add("dark-editable-form", "d-flex", "align-items-start");
         form.addEventListener('submit', async e => {
             e.preventDefault();
             const newValue = this.getValue();
@@ -96,13 +95,8 @@ export default class BaseType{
     createContainerLoad(): HTMLDivElement
     {
         const div = document.createElement(`div`);
-        div.style.display = "none";
-        div.style.position = "absolute";
-        div.style.background = "white";
-        div.style.width = "100%";
-        div.style.height = "100%";
-        div.style.top = '0';
-        div.style.left = '0';
+        div.classList.add("dark-editable-load-overlay");
+        div.hidden = true;
         const loader = document.createElement(`div`);
         loader.classList.add("dark-editable-loader");
         div.append(loader);
@@ -114,8 +108,6 @@ export default class BaseType{
         const button = document.createElement("button");
         button.type = "button";
         button.classList.add("btn", "btn-sm");
-        button.style.color = "transparent";
-        button.style.textShadow = "0 0 0 white";
         return button;
     }
 
@@ -124,7 +116,8 @@ export default class BaseType{
         const btn_success = this.createButton();
         btn_success.type = "submit";
         btn_success.classList.add("btn-success");
-        btn_success.innerHTML = "✔";
+        btn_success.setAttribute("aria-label", "Save");
+        btn_success.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.485 1.929a1 1 0 0 1 .057 1.414l-7.5 8a1 1 0 0 1-1.45.036l-3.5-3.5a1 1 0 1 1 1.414-1.415L5.5 9.379l6.571-7.007a1 1 0 0 1 1.414-.043z"/></svg>`;
         return btn_success;
     }
 
@@ -132,9 +125,8 @@ export default class BaseType{
     {
         const btn_cancel = this.createButton();
         btn_cancel.classList.add("btn-danger");
-        const div = document.createElement("div");
-        div.innerHTML = "✖";
-        btn_cancel.append(div);
+        btn_cancel.setAttribute("aria-label", "Cancel");
+        btn_cancel.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/></svg>`;
         btn_cancel.addEventListener("click", () => {
             this.context.modeElement.hide();
         });
@@ -144,14 +136,14 @@ export default class BaseType{
     hideLoad(): void
     {
         if(this.load){
-            this.load.style.display = "none";
+            this.load.hidden = true;
         }
     }
 
     showLoad(): void
     {
         if(this.load){
-            this.load.style.display = "block";
+            this.load.hidden = false;
         }
     }
 
@@ -197,21 +189,21 @@ export default class BaseType{
     setError(errorMsg: string): void
     {
         if(this.error){
-            this.error.innerHTML = errorMsg;
+            this.error.textContent = errorMsg;
         }
     }
 
     showError(): void
     {
         if(this.error){
-            this.error.style.display = "block";
+            this.error.hidden = false;
         }
     }
 
     hideError(): void
     {
         if(this.error){
-            this.error.style.display = "none";
+            this.error.hidden = true;
         }
     }
 
@@ -222,7 +214,7 @@ export default class BaseType{
         if(this.context.options.required){
             element.required = this.context.options.required;
         }
-        if(!this.context.options.showbuttons){
+        if(!this.context.options.showButtons){
             element.addEventListener('change', () => {
                 if(this.form){
                     this.form.dispatchEvent(new Event('submit'));
@@ -237,16 +229,16 @@ export default class BaseType{
     {
         this.context.element.addEventListener('shown', function(){
             element.focus();
-        });
+        }, { once: true });
     }
 
     initText(): boolean
     {
         if(this.context.getValue() === ""){
-            this.context.element.innerHTML = this.context.options.emptytext || "";
+            this.context.element.textContent = this.context.options.emptyText || "";
             return true;
         } else {
-            this.context.element.innerHTML = this.context.getValue();
+            this.context.element.textContent = this.context.getValue();
             return false;
         }
     }

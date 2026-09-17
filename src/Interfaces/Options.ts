@@ -11,16 +11,16 @@ export default interface Options {
     disabled?: boolean;
     send?: boolean;
     mode?: 'popup'|'inline';
-    emptytext?: string;
+    emptyText?: string;
     url?: string|null;
     required?: boolean;
-    showbuttons?: boolean;
+    showButtons?: boolean;
     success?: (response: Response, newValue: string|number) => Promise<any>;
     error?: (response: Response, newValue: string|number) => Promise<any>;
     popoverOptions?: Popover.Options
     //other
     format?: string;
-    viewformat?: string;
+    displayFormat?: string;
     source?: [{ value: string, text: string }] | string;
     attributes?: { [key: string]: string|number|boolean|undefined; };
 }

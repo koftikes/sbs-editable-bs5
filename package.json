@@ -8,11 +8,11 @@
     "dist",
     "src"
   ],
-  "main": "./dist/dark-editable.js",
-  "types": "./dist/dark-editable.d.ts",
+  "main": "./dist/editable.js",
+  "types": "./dist/editable.d.ts",
   "exports": {
-    "import": "./dist/dark-editable.js",
-    "require": "./dist/dark-editable.umd.cjs"
+    "import": "./dist/editable.js",
+    "require": "./dist/editable.umd.cjs"
   },
   "peerDependencies": {
     "bootstrap": "^5.3"

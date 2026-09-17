@@ -1,25 +1,25 @@
-.dark-editable-element{
+.editable-element{
     border-bottom: dashed 1px var(--bs-primary, #0088cc);
     text-decoration: none;
     cursor: pointer;
 }
-.dark-editable-element-disabled{
+.editable-element-disabled{
     border-bottom: none;
     cursor: default;
 }
-.dark-editable-element-empty{
+.editable-element-empty{
   font-style: italic;
   color: var(--bs-danger, #DD1144);
 }
-.dark-editable{
+.editable{
     max-width: none;
 }
 
-.dark-editable-form{
+.editable-form{
     gap: 20px;
 }
 
-.dark-editable-load-overlay{
+.editable-load-overlay{
     position: absolute;
     inset: 0;
     display: flex;
@@ -28,7 +28,7 @@
     background: var(--bs-body-bg, #fff);
 }
 
-.dark-editable-loader {
+.editable-loader {
     font-size: 5px;
     width: 1em;
     height: 1em;

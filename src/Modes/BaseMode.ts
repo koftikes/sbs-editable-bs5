@@ -1,9 +1,9 @@
-import DarkEditable from "../dark-editable.ts";
+import Editable from "../editable.ts";
 
 export default class BaseMode{
-    context: DarkEditable;
+    context: Editable;
 
-    constructor(context: DarkEditable) {
+    constructor(context: Editable) {
         if(this.constructor === BaseMode){
             throw new Error(`It's abstract class`);
         }
@@ -15,16 +15,16 @@ export default class BaseMode{
             throw new Error("Element is missing!");
         }
         this.context.typeElement.element.value = this.context.getValue();
-        this.context.element.dispatchEvent(new CustomEvent("show", {detail: {DarkEditable: this.context}}));
+        this.context.element.dispatchEvent(new CustomEvent("show", {detail: {Editable: this.context}}));
     }
     event_shown(){
-        this.context.element.dispatchEvent(new CustomEvent("shown", {detail: {DarkEditable: this.context}}));
+        this.context.element.dispatchEvent(new CustomEvent("shown", {detail: {Editable: this.context}}));
     }
     event_hide(){
-        this.context.element.dispatchEvent(new CustomEvent("hide", {detail: {DarkEditable: this.context}}));
+        this.context.element.dispatchEvent(new CustomEvent("hide", {detail: {Editable: this.context}}));
     }
     event_hidden(){
-        this.context.element.dispatchEvent(new CustomEvent("hidden", {detail: {DarkEditable: this.context}}));
+        this.context.element.dispatchEvent(new CustomEvent("hidden", {detail: {Editable: this.context}}));
     }
     init(){
         throw new Error('Method `init` not define!');

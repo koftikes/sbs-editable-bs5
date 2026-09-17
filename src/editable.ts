@@ -1,4 +1,4 @@
-import "./dark-editable.css";
+import "./editable.css";
 import PopupMode from "./Modes/PopupMode.ts";
 import InlineMode from "./Modes/InlineMode.ts";
 import BaseType from "./Types/BaseType.ts";
@@ -13,10 +13,10 @@ import BaseMode from "./Modes/BaseMode.ts";
 export type { Options };
 
 /*!
- * DarkEditable.js
+ * Editable.js
  * License: MIT
  */
-export default class DarkEditable{
+export default class Editable{
     static BaseType = BaseType;
     static BaseMode = BaseMode;
     static InputType = InputType;
@@ -49,12 +49,12 @@ export default class DarkEditable{
 
     static registerType(name: string, type: typeof BaseType): void
     {
-        DarkEditable.types.set(name, type);
+        Editable.types.set(name, type);
     }
 
     static registerMode(name: string, mode: typeof BaseMode): void
     {
-        DarkEditable.modes.set(name, mode);
+        Editable.modes.set(name, mode);
     }
 
     element: HTMLElement;
@@ -77,7 +77,7 @@ export default class DarkEditable{
         if(this.options.disabled){
             this.disable();
         }
-        this.element.dispatchEvent(new CustomEvent("init", {detail: {DarkEditable: this}}));
+        this.element.dispatchEvent(new CustomEvent("init", {detail: {Editable: this}}));
     }
 
     /* INIT METHODS */
@@ -140,7 +140,7 @@ export default class DarkEditable{
     }
 
     init_text(){
-        const empty_class = "dark-editable-element-empty";
+        const empty_class = "editable-element-empty";
         this.element.classList.remove(empty_class);
         if(this.typeElement.initText()){
             this.element.classList.add(empty_class);
@@ -148,13 +148,13 @@ export default class DarkEditable{
     }
 
     init_style(){
-        this.element.classList.add("dark-editable-element");
+        this.element.classList.add("editable-element");
     }
 
     /* INIT METHODS END */
     route_mode(): BaseMode
     {
-        const ModeClass = DarkEditable.modes.get(this.options.mode as string);
+        const ModeClass = Editable.modes.get(this.options.mode as string);
         if(!ModeClass){
             throw new Error(`Mode ${this.options.mode} not found!`);
         }
@@ -167,7 +167,7 @@ export default class DarkEditable{
             // @ts-ignore
             return new this.options.type(this);
         }
-        const TypeClass = DarkEditable.types.get(this.options.type as string);
+        const TypeClass = Editable.types.get(this.options.type as string);
         if(!TypeClass){
             throw new Error(`Undefined type: ${this.options.type}`);
         }
@@ -193,14 +193,14 @@ export default class DarkEditable{
     enable(): void
     {
         this.options.disabled = false;
-        this.element.classList.remove("dark-editable-element-disabled");
+        this.element.classList.remove("editable-element-disabled");
         this.modeElement.enable();
     }
 
     disable(): void
     {
         this.options.disabled = true;
-        this.element.classList.add("dark-editable-element-disabled");
+        this.element.classList.add("editable-element-disabled");
         this.modeElement.disable();
     }
 
@@ -225,9 +225,9 @@ export default class DarkEditable{
     {
         this.modeElement.destroy();
         this.element.classList.remove(
-            "dark-editable-element",
-            "dark-editable-element-disabled",
-            "dark-editable-element-empty"
+            "editable-element",
+            "editable-element-disabled",
+            "editable-element-empty"
         );
     }
 

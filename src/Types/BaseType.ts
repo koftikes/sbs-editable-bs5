@@ -1,15 +1,15 @@
-import DarkEditable from "../dark-editable.ts";
+import Editable from "../editable.ts";
 import BaseTypeButtons from "../Interfaces/BaseTypeButtons.ts";
 
 export default class BaseType{
-    context: DarkEditable;
+    context: Editable;
     element: HTMLInputElement|null = null;
     error: HTMLElement|null = null;
     form: HTMLElement|null = null;
     load: HTMLElement|null  = null;
     buttons: BaseTypeButtons = {success: null, cancel: null};
 
-    constructor(context: DarkEditable) {
+    constructor(context: Editable) {
         if(this.constructor === BaseType){
             throw new Error(`It's abstract class`);
         }
@@ -44,7 +44,7 @@ export default class BaseType{
     createContainerError(): HTMLDivElement
     {
         const div = document.createElement(`div`);
-        div.classList.add("dark-editable-error", "text-danger", "fst-italic", "mb-2", "fw-bold");
+        div.classList.add("editable-error", "text-danger", "fst-italic", "mb-2", "fw-bold");
         div.hidden = true;
         return div;
     }
@@ -52,7 +52,7 @@ export default class BaseType{
     createContainerForm(): HTMLFormElement
     {
         const form = document.createElement(`form`);
-        form.classList.add("dark-editable-form", "d-flex", "align-items-start");
+        form.classList.add("editable-form", "d-flex", "align-items-start");
         form.addEventListener('submit', async e => {
             e.preventDefault();
             const newValue = this.getValue();
@@ -87,7 +87,7 @@ export default class BaseType{
                 this.context.modeElement.hide();
                 this.initText();
             }
-            this.context.element.dispatchEvent(new CustomEvent("save", {detail: {DarkEditable: this.context}}));
+            this.context.element.dispatchEvent(new CustomEvent("save", {detail: {Editable: this.context}}));
         })
         return form;
     }
@@ -95,10 +95,10 @@ export default class BaseType{
     createContainerLoad(): HTMLDivElement
     {
         const div = document.createElement(`div`);
-        div.classList.add("dark-editable-load-overlay");
+        div.classList.add("editable-load-overlay");
         div.hidden = true;
         const loader = document.createElement(`div`);
-        loader.classList.add("dark-editable-loader");
+        loader.classList.add("editable-loader");
         div.append(loader);
         return div;
     }

@@ -1,5 +1,8 @@
 import BaseType from "./BaseType.js";
-import moment from "moment";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 export default class DateType extends BaseType{
     create(){
@@ -13,10 +16,10 @@ export default class DateType extends BaseType{
     {
         const value = this.context.getValue();
         if(value === ""){
-            this.context.element.innerHTML = this.context.options.emptytext || "";
+            this.context.element.textContent = this.context.options.emptyText || "";
             return true;
         } else {
-            this.context.element.innerHTML = moment(value, this.context.options.format).format(this.context.options.viewformat);
+            this.context.element.textContent = dayjs(value, this.context.options.format).format(this.context.options.displayFormat);
             return false;
         }
     }
@@ -25,7 +28,7 @@ export default class DateType extends BaseType{
     {
         const default_format = "YYYY-MM-DD";
         const format = this.context.get_opt("format", default_format);
-        const viewformat = this.context.get_opt("viewformat", default_format);
-        this.context.setValue(moment(this.context.getValue(), viewformat).format(format));
+        const displayFormat = this.context.get_opt("displayFormat", default_format);
+        this.context.setValue(dayjs(this.context.getValue(), displayFormat).format(format));
     }
 }

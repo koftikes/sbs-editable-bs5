@@ -7,7 +7,7 @@ export default class SelectType extends BaseType{
             this.context.options.source.forEach(item => {
                 const opt = document.createElement(`option`);
                 opt.value = item.value;
-                opt.innerHTML = item.text;
+                opt.textContent = item.text;
                 select.append(opt);
             });
         }
@@ -16,12 +16,12 @@ export default class SelectType extends BaseType{
     }
 
     initText(){
-        this.context.element.innerHTML = this.context.options.emptytext || "";
+        this.context.element.textContent = this.context.options.emptyText || "";
         if(this.context.getValue() !== "" && this.context.options.source && Array.isArray(this.context.options.source) && this.context.options.source.length > 0){
             for(let i = 0; i < this.context.options.source.length; i++){
                 const item = this.context.options.source[ i ];
                 if( item.value == this.context.getValue()){
-                    this.context.element.innerHTML = item.text;
+                    this.context.element.textContent = item.text;
                     return false;
                 }
             }

@@ -10,11 +10,53 @@ import DateTimeType from "./Types/DateTimeType.ts";
 import Options from "./Interfaces/Options.ts";
 import BaseMode from "./Modes/BaseMode.ts";
 
+export type { Options };
+
 /*!
  * DarkEditable.js
  * License: MIT
  */
 export default class DarkEditable{
+    static BaseType = BaseType;
+    static BaseMode = BaseMode;
+    static InputType = InputType;
+    static TextAreaType = TextAreaType;
+    static SelectType = SelectType;
+    static DateType = DateType;
+    static DateTimeType = DateTimeType;
+    static PopupMode = PopupMode;
+    static InlineMode = InlineMode;
+
+    static types: Map<string, typeof BaseType> = new Map<string, typeof BaseType>([
+        ["text", InputType],
+        ["password", InputType],
+        ["email", InputType],
+        ["url", InputType],
+        ["tel", InputType],
+        ["number", InputType],
+        ["range", InputType],
+        ["time", InputType],
+        ["textarea", TextAreaType],
+        ["select", SelectType],
+        ["date", DateType],
+        ["datetime", DateTimeType],
+    ]);
+
+    static modes: Map<string, typeof BaseMode> = new Map<string, typeof BaseMode>([
+        ["popup", PopupMode],
+        ["inline", InlineMode],
+    ]);
+
+    static registerType(name: string, type: typeof BaseType): void
+    {
+        DarkEditable.types.set(name, type);
+    }
+
+    static registerMode(name: string, mode: typeof BaseMode): void
+    {
+        DarkEditable.modes.set(name, mode);
+    }
+
     element: HTMLElement;
     options: Options;
 
@@ -24,7 +66,7 @@ export default class DarkEditable{
     constructor(element: HTMLElement, options: Options = {}) {
         this.element = element;
         this.options = { ...options };
-        
+
         this.init_options();
         this.typeElement = this.route_type();
         this.typeElement.initOptions();
@@ -71,23 +113,22 @@ export default class DarkEditable{
     init_options(): void
     {
         //priority date elements
-        this.get_opt("value", this.element.innerHTML);
+        this.get_opt("value", this.element.textContent ?? "");
         this.get_opt("name", this.element.id);
         this.get_opt("pk", null);
         this.get_opt("title", "");
         this.get_opt("type", "text");
-        this.get_opt("emptytext", "Empty");
+        this.get_opt("emptyText", "Empty");
         this.get_opt("mode", "popup");
         this.get_opt("url", null);
         this.get_opt("ajaxOptions", {});
         this.options.ajaxOptions = Object.assign({
             method: "POST",
-            dataType: "text",
         }, this.options.ajaxOptions);
         this.get_opt_bool("send", true);
         this.get_opt_bool("disabled", false);
         this.get_opt_bool("required", false);
-        this.get_opt_bool("showbuttons", true);
+        this.get_opt_bool("showButtons", true);
         if(this.options?.success && typeof this.options?.success === "function"){
             this.success = this.options.success;
         }
@@ -111,15 +152,13 @@ export default class DarkEditable{
     }
 
     /* INIT METHODS END */
-    route_mode(){
-        switch (this.options.mode){
-            default:
-                throw new Error(`Mode ${this.options.mode} not found!`)
-            case 'popup':
-                return new PopupMode(this);
-            case 'inline':
-                return new InlineMode(this);
+    route_mode(): BaseMode
+    {
+        const ModeClass = DarkEditable.modes.get(this.options.mode as string);
+        if(!ModeClass){
+            throw new Error(`Mode ${this.options.mode} not found!`);
         }
+        return new ModeClass(this);
     }
 
     route_type(): BaseType
@@ -128,26 +167,11 @@ export default class DarkEditable{
             // @ts-ignore
             return new this.options.type(this);
         }
-        switch (this.options.type) {
-            case "text":
-            case "password":
-            case "email":
-            case "url":
-            case "tel":
-            case "number":
-            case "range":
-            case "time":
-                return new InputType(this);
-            case "textarea":
-                return new TextAreaType(this);
-            case "select":
-                return new SelectType(this);
-            case "date":
-                return new DateType(this);
-            case "datetime":
-                return new DateTimeType(this);
+        const TypeClass = DarkEditable.types.get(this.options.type as string);
+        if(!TypeClass){
+            throw new Error(`Undefined type: ${this.options.type}`);
         }
-        throw new Error(`Undefined type`);
+        return new TypeClass(this);
     }
 
     /* AJAX */
@@ -195,6 +219,16 @@ export default class DarkEditable{
     {
         // @ts-ignore
         return this.options[name] ?? null;
+    }
+
+    destroy(): void
+    {
+        this.modeElement.destroy();
+        this.element.classList.remove(
+            "dark-editable-element",
+            "dark-editable-element-disabled",
+            "dark-editable-element-empty"
+        );
     }
 
     /* METHODS END */

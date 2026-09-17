@@ -4,6 +4,7 @@ import BaseMode from "./BaseMode.js";
 export default class PopupMode extends BaseMode{
 
     popover: Popover|null = null;
+    private abortController: AbortController = new AbortController();
 
     init(){
         const options = {
@@ -14,21 +15,22 @@ export default class PopupMode extends BaseMode{
             title: this.context.options.title,
         };
         this.popover = new Popover(this.context.element, Object.assign(
-            options, 
+            options,
             this.context.options.popoverOptions
         ));
+        const { signal } = this.abortController;
         this.context.element.addEventListener('show.bs.popover', () => {
             this.event_show();
-        });
+        }, { signal });
         this.context.element.addEventListener('shown.bs.popover', () => {
             this.event_shown();
-        });
+        }, { signal });
         this.context.element.addEventListener('hide.bs.popover', () => {
             this.event_hide();
-        });
+        }, { signal });
         this.context.element.addEventListener('hidden.bs.popover', () => {
             this.event_hidden();
-        });
+        }, { signal });
 
         document.addEventListener('click', (e) => {
             const target = <HTMLElement>e.target;
@@ -37,11 +39,11 @@ export default class PopupMode extends BaseMode{
             let current = target.parentNode;
             while(current){
                 // @ts-ignore
-                if(current === this.popover.tip) return;
+                if(current === this.popover?.tip) return;
                 current = current.parentNode;
             }
             this.hide();
-        })
+        }, { signal });
     }
     enable(): void
     {
@@ -60,5 +62,11 @@ export default class PopupMode extends BaseMode{
         if(this.popover){
             this.popover.hide();
         }
+    }
+    destroy(): void
+    {
+        this.abortController.abort();
+        this.popover?.dispose();
+        this.popover = null;
     }
 }

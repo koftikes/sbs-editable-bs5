@@ -17,11 +17,10 @@ export default defineConfig({
       formats: ['es', 'iife', 'umd'],
     },
     rollupOptions: {
-      external: ['bootstrap', 'moment'],
+      external: ['bootstrap'],
       output: {
         globals: {
           bootstrap: 'bootstrap',
-          moment: 'moment',
         }
       }
     },

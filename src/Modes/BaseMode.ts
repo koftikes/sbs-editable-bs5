@@ -38,4 +38,7 @@ export default class BaseMode{
     hide(){
         throw new Error('Method `hide` not define!');
     }
+    destroy(){
+        throw new Error('Method `destroy` not define!');
+    }
 }

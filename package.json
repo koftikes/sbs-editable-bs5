@@ -1,7 +1,7 @@
 {
-  "name": "dark-editable",
+  "name": "sbs-editable-bs5",
   "description": "In-place editing with Bootstrap 5, Popper, Moment.js",
-  "author": "DarKsandr",
+  "author": "Konstantin Litvinov",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -19,24 +19,27 @@
     "moment": "^2.30.1"
   },
   "devDependencies": {
-    "@types/bootstrap": "^5.2.10",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.7",
-    "vite-plugin-dts": "^4.4.0",
-    "vite-plugin-lib-inject-css": "^2.2.1"
+    "@types/bootstrap": "^5.2.11",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^5.1.0",
+    "vite-plugin-lib-inject-css": "^2.2.2"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "version": "2.1.7",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DarKsandr/dark-editable.git"
+    "url": "git+https://github.com/koftikes/sbs-editable-bs5.git"
   },
   "bugs": {
-    "url": "https://github.com/DarKsandr/dark-editable/issues"
+    "url": "https://github.com/koftikes/sbs-editable-bs5/issues"
   },
-  "homepage": "https://github.com/DarKsandr/dark-editable#readme"
+  "homepage": "https://github.com/koftikes/sbs-editable-bs5#readme"
 }

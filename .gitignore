@@ -1,17 +1,18 @@
-/node_modules
-/public
-/storage/*.key
-/vendor
-.env
-composer.lock
-.env.backup
-.phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/.idea
-/.vscode
+# Editors / OS
+.idea
+.vscode
+.DS_Store
+
+# Dependencies and Build
+node_modules
+dist
+
+# Local demo page for `npm run dev` (vite dev server), kept out of git
 index.html
 script.js
+
+# Logs
+*.log
+
+# Environment
+.env

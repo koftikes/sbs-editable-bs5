@@ -10,10 +10,10 @@ export default defineConfig({
   build: {
     lib: {
       // Could also be a dictionary or array of multiple entry points
-      entry: './src/dark-editable.ts',
-      name: 'DarkEditable',
+      entry: './src/editable.ts',
+      name: 'Editable',
       // the proper extensions will be added
-      fileName: 'dark-editable',
+      fileName: 'editable',
       formats: ['es', 'iife', 'umd'],
     },
     rollupOptions: {

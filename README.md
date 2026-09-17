@@ -19,14 +19,14 @@ Or include the pre-built files directly:
 ```html
 <link rel="stylesheet" href="bootstrap.min.css">
 <script src="bootstrap.bundle.min.js"></script>
-<script src="dist/dark-editable.iife.js"></script>
+<script src="dist/editable.iife.js"></script>
 ```
 
 | Build | When to use |
 |---|---|
-| `dist/dark-editable.js` | ESM, for bundlers (`import DarkEditable from 'sbs-editable-bs5'`) |
-| `dist/dark-editable.iife.js` | Plain `<script>` tag, exposes a global `DarkEditable` |
-| `dist/dark-editable.umd.cjs` | CommonJS (`require`) |
+| `dist/editable.js` | ESM, for bundlers (`import Editable from 'sbs-editable-bs5'`) |
+| `dist/editable.iife.js` | Plain `<script>` tag, exposes a global `Editable` |
+| `dist/editable.umd.cjs` | CommonJS (`require`) |
 
 ## Quick start
 
@@ -47,13 +47,13 @@ Key attributes:
 
 ```js
 const el = document.getElementById('username');
-const editable = new DarkEditable(el);
+const editable = new Editable(el);
 ```
 
 Or configure everything from JavaScript instead of `data-*` attributes:
 
 ```js
-const editable = new DarkEditable(el, {
+const editable = new Editable(el, {
     type: 'text',
     pk: 1,
     url: '/post',
@@ -81,7 +81,7 @@ There are no restrictions on the server-side language/framework:
 If your server always returns `200` with an `error` flag in the JSON body instead of using HTTP status codes, handle it in `success`:
 
 ```js
-const editable = new DarkEditable(el, {
+const editable = new Editable(el, {
     // ...
     success: async function (response, newValue) {
         const res = await response.json();
@@ -97,7 +97,7 @@ const editable = new DarkEditable(el, {
 Omit `url` to skip the network request entirely and just update the element locally:
 
 ```js
-const editable = new DarkEditable(el, {
+const editable = new Editable(el, {
     type: 'text',
     title: 'Enter username',
 });
@@ -161,42 +161,42 @@ Options can be set via JavaScript or `data-*` attributes. For multi-word camelCa
 
 ## Extensibility
 
-Custom input types and modes are registered on `DarkEditable` and referenced by name via the `type`/`mode` options — no need to fork the library to add one:
+Custom input types and modes are registered on `Editable` and referenced by name via the `type`/`mode` options — no need to fork the library to add one:
 
 ```js
-import DarkEditable from 'sbs-editable-bs5';
+import Editable from 'sbs-editable-bs5';
 
-class RatingType extends DarkEditable.BaseType {
+class RatingType extends Editable.BaseType {
     create() {
         // build and return your custom input element/container
     }
 }
 
-DarkEditable.registerType('rating', RatingType);
+Editable.registerType('rating', RatingType);
 
-new DarkEditable(el, { type: 'rating' });
+new Editable(el, { type: 'rating' });
 ```
 
-The same pattern applies to modes via `DarkEditable.registerMode(name, ModeClass)`, extending `DarkEditable.BaseMode`. You can also pass a class directly as `type` without registering it first.
+The same pattern applies to modes via `Editable.registerMode(name, ModeClass)`, extending `Editable.BaseMode`. You can also pass a class directly as `type` without registering it first.
 
 ## Events
 
 ```js
 document.getElementById('username').addEventListener('save', function (e) {
-    console.log('Saved', e.detail.DarkEditable.getValue());
+    console.log('Saved', e.detail.Editable.getValue());
 });
 ```
 
 | Event | Description |
 |---|---|
-| `init` | Fired once the editable is fully initialized. Attach this listener *before* calling `new DarkEditable(...)`. |
+| `init` | Fired once the editable is fully initialized. Attach this listener *before* calling `new Editable(...)`. |
 | `show` | Fired when the container starts showing and the form is rendered. |
 | `shown` | Fired once the container has finished showing. |
 | `hide` | Fired when the container starts hiding (on both save and cancel). |
 | `hidden` | Fired once the container has finished hiding. |
 | `save` | Fired after a new value has been submitted/accepted. |
 
-All events dispatch with `event.detail.DarkEditable` set to the instance.
+All events dispatch with `event.detail.Editable` set to the instance.
 
 ## Input types
 
@@ -251,7 +251,7 @@ All events dispatch with `event.detail.DarkEditable` set to the instance.
 | `attributes` | `object` | `{}` | Map of native HTML5 attributes applied to the input. |
 
 ```js
-const editable = new DarkEditable(el, {
+const editable = new Editable(el, {
     type: 'number',
     attributes: {
         placeholder: 'Enter age',

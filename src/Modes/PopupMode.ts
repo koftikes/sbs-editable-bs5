@@ -11,7 +11,7 @@ export default class PopupMode extends BaseMode{
             container: "body",
             content: this.context.typeElement.create(),
             html: true,
-            customClass: "dark-editable",
+            customClass: "editable",
             title: this.context.options.title,
         };
         this.popover = new Popover(this.context.element, Object.assign(

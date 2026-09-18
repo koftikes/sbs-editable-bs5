@@ -57,6 +57,8 @@ export default class Editable {
     typeElement: BaseType;
     modeElement: BaseMode;
 
+    private accessibilityAbortController = new AbortController();
+
     constructor(element: HTMLElement, options: Options = {}) {
         this.element = element;
         this.options = { ...options };
@@ -68,6 +70,7 @@ export default class Editable {
         this.modeElement.init();
         this.init_text();
         this.init_style();
+        this.init_accessibility();
         this.element.dispatchEvent(new CustomEvent('init', { detail: { Editable: this } }));
     }
 
@@ -145,6 +148,39 @@ export default class Editable {
         this.element.classList.add('editable-element');
     }
 
+    // The trigger has no native keyboard semantics unless the host already made it one
+    // (a real <button> or <a href>) — give it button-like tabbing and Enter/Space activation
+    // otherwise. Guarded to the element itself so keys typed into an open inline-mode input,
+    // which lives inside this same element, don't re-trigger it.
+    init_accessibility(): void {
+        const el = this.element;
+        const isNativelyInteractive =
+            el.tagName === 'BUTTON' ||
+            el.tagName === 'INPUT' ||
+            el.tagName === 'SELECT' ||
+            el.tagName === 'TEXTAREA' ||
+            (el.tagName === 'A' && el.hasAttribute('href'));
+        if (isNativelyInteractive) return;
+
+        if (!el.hasAttribute('tabindex')) {
+            el.tabIndex = 0;
+        }
+        if (!el.hasAttribute('role')) {
+            el.setAttribute('role', 'button');
+        }
+        el.addEventListener(
+            'keydown',
+            (e) => {
+                if (e.target !== el) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    el.click();
+                }
+            },
+            { signal: this.accessibilityAbortController.signal },
+        );
+    }
+
     route_mode(): BaseMode {
         const ModeClass = Editable.modes.get(this.options.mode as string);
         if (!ModeClass) {
@@ -201,6 +237,7 @@ export default class Editable {
     }
 
     destroy(): void {
+        this.accessibilityAbortController.abort();
         this.modeElement.destroy();
         this.element.classList.remove('editable-element', 'editable-element-disabled', 'editable-element-empty');
     }

@@ -64,13 +64,28 @@ export default class BaseType {
     createContainerError(): HTMLDivElement {
         const div = document.createElement(`div`);
         div.classList.add('editable-error', 'text-danger', 'fst-italic', 'mb-2', 'fw-bold');
+        div.setAttribute('role', 'alert');
         div.hidden = true;
         return div;
+    }
+
+    // Closes the widget and returns keyboard focus to the trigger — used for every
+    // explicit exit (cancel, Escape, successful save), but not for an outside-click
+    // dismissal, where focus should stay wherever the user actually clicked.
+    private closeAndFocus(): void {
+        this.context.modeElement.hide();
+        this.context.element.focus();
     }
 
     createContainerForm(): HTMLFormElement {
         const form = document.createElement(`form`);
         form.classList.add('editable-form', 'd-flex', 'align-items-start');
+        form.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.closeAndFocus();
+            }
+        });
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newValue = this.getValue();
@@ -95,19 +110,19 @@ export default class BaseType {
                 }
 
                 if (msg) {
-                    this.setError(msg);
                     this.showError();
+                    this.setError(msg);
                 } else {
                     this.setError('');
                     this.hideError();
                     this.context.setValue(this.getValue());
-                    this.context.modeElement.hide();
+                    this.closeAndFocus();
                     this.initText();
                 }
                 this.hideLoad();
             } else {
                 this.context.setValue(this.getValue());
-                this.context.modeElement.hide();
+                this.closeAndFocus();
                 this.initText();
             }
             this.context.element.dispatchEvent(new CustomEvent('save', { detail: { Editable: this.context } }));
@@ -147,7 +162,7 @@ export default class BaseType {
         btn_cancel.setAttribute('aria-label', 'Cancel');
         btn_cancel.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z"/></svg>`;
         btn_cancel.addEventListener('click', () => {
-            this.context.modeElement.hide();
+            this.closeAndFocus();
         });
         return btn_cancel;
     }

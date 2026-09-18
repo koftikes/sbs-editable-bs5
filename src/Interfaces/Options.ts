@@ -1,10 +1,10 @@
 import { Popover } from "bootstrap";
 import BaseType from "../Types/BaseType.ts";
+import type Editable from "../editable.ts";
 
 export default interface Options {
     value?: string;
     name?: string;
-    pk?: string;
     title?: string;
     type?: BaseType|string;
     ajaxOptions?: RequestInit;
@@ -12,7 +12,12 @@ export default interface Options {
     send?: boolean;
     mode?: 'popup'|'inline';
     emptyText?: string;
-    url?: string|null;
+    url?: string | ((context: Editable, newValue: string) => string) | null;
+    requestBuilder?: (
+        context: Editable,
+        newValue: string,
+        resolvedUrl: string
+    ) => { url: string; init: RequestInit } | Promise<{ url: string; init: RequestInit }>;
     required?: boolean;
     showButtons?: boolean;
     success?: (response: Response, newValue: string|number) => Promise<any>;

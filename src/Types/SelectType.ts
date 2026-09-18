@@ -32,7 +32,13 @@ export default class SelectType extends BaseType{
     initOptions(){
         this.context.get_opt("source", []);
         if(this.context.options && typeof this.context.options.source === "string" && this.context.options.source !== ""){
-            this.context.options.source = JSON.parse(this.context.options.source);
+            try {
+                this.context.options.source = JSON.parse(this.context.options.source);
+            } catch (e) {
+                const el = this.context.element;
+                const identifier = el.id ? `#${el.id}` : `<${el.tagName.toLowerCase()}>`;
+                throw new Error(`Invalid JSON in "source" option/data-source attribute on ${identifier}: ${(e as Error).message}`);
+            }
         }
     }
 }

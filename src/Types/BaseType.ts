@@ -11,14 +11,14 @@ export default class BaseType{
 
     constructor(context: Editable) {
         if(this.constructor === BaseType){
-            throw new Error(`It's abstract class`);
+            throw new Error("BaseType is abstract and cannot be instantiated directly — create a subclass that implements create() (see InputType, SelectType, etc.).");
         }
         this.context = context;
     }
 
     create(): HTMLElement
     {
-        throw new Error('Method `create` not define!');
+        throw new Error(`${this.constructor.name} must implement create().`);
     }
 
     createContainer(element: HTMLInputElement): HTMLDivElement
@@ -56,7 +56,7 @@ export default class BaseType{
         form.addEventListener('submit', async e => {
             e.preventDefault();
             const newValue = this.getValue();
-            if(this.context.options.send && this.context.options.pk && this.context.options.url && (this.context.getValue() !== newValue)){
+            if(this.context.options.send && this.context.options.url && (this.context.getValue() !== newValue)){
                 this.showLoad();
                 let msg;
                 try {
@@ -68,6 +68,9 @@ export default class BaseType{
                     }
                 } catch (error) {
                     console.error(error);
+                    if(!(error instanceof TypeError)){
+                        throw error;
+                    }
                     msg = error;
                 }
 
@@ -147,29 +150,25 @@ export default class BaseType{
         }
     }
 
-    ajax(new_value: string): Promise<Response>
+    async ajax(new_value: string): Promise<Response>
     {
-        let url = this.context.options.url;
-        if(!url){
-            throw new Error("URL is required!");
+        const urlOption = this.context.options.url;
+        if(!urlOption){
+            const err = new Error("ajax() was called without a `url` option configured. Set `url` (string or function) before calling save.");
+            console.error(err);
+            throw err;
         }
-        if(!this.context.options.pk){
-            throw new Error("pk is required!");
+        const url = typeof urlOption === "function"
+            ? urlOption(this.context, new_value)
+            : urlOption;
+
+        if(this.context.options.requestBuilder){
+            const built = await this.context.options.requestBuilder(this.context, new_value, url);
+            return fetch(built.url, built.init);
         }
-        if(!this.context.options.name){
-            throw new Error("Name is required!");
-        }
+
         const form = new FormData;
-        form.append("pk", this.context.options.pk);
-        form.append("name", this.context.options.name);
-        form.append("value", new_value);
-        if(this.context.options.ajaxOptions?.method === "GET"){
-            const params: [string?] = [];
-            form.forEach((value, key) => {
-                params.push(`${key}=${value}`);
-            });
-            url += "?" + params.join("&");
-        }
+        form.append(this.context.options.name ?? "value", new_value);
 
         const ajaxOptions = {...this.context.options.ajaxOptions};
         ajaxOptions.body = form;

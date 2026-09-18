@@ -33,14 +33,13 @@ Or include the pre-built files directly:
 **1. Mark up an editable element** — usually an `<a>` with `data-*` attributes:
 
 ```html
-<a id="username" data-type="text" data-pk="1" data-url="/post" data-title="Enter username">superuser</a>
+<a id="username" data-type="text" data-url="/post" data-title="Enter username">superuser</a>
 ```
 
 Key attributes:
 - `type` — input type (`text`, `textarea`, `select`, `date`, ...)
 - `url` — endpoint that receives the submitted value (e.g. `/post`)
-- `pk` — primary key of the record being updated
-- `id` / `data-name` — field name submitted to the server (falls back to the element's `id`)
+- `data-name` — the key the new value is submitted under. Falls back to the element's `id`, then to the literal key `value` if neither is set.
 - `value` — initial value; if omitted, taken from the element's text content
 
 **2. Initialize it:**
@@ -55,18 +54,15 @@ Or configure everything from JavaScript instead of `data-*` attributes:
 ```js
 const editable = new Editable(el, {
     type: 'text',
-    pk: 1,
     url: '/post',
     title: 'Enter username',
 });
 ```
 
-**3. Click the element, edit, submit.** The library sends a `POST` (by default) to `url` with:
+**3. Click the element, edit, submit.** The library sends a `POST` (by default) to `url` — the body is a single field, keyed by `name` (or the element's `id`, or the literal key `value` if neither is set):
 
 ```
-name:  'username'   // field name (column in db)
-pk:    1             // primary key (record id)
-value: 'superuser!'  // new value
+username: 'superuser!'
 ```
 
 ## Backend contract
@@ -103,9 +99,72 @@ const editable = new Editable(el, {
 });
 ```
 
+### Per-record endpoints
+
+There's no `pk` option — if you're editing a specific record, build its identifier into the URL instead, by passing a function:
+
+```js
+new Editable(el, {
+    type: 'text',
+    url: (ctx, newValue) => `/api/users/${ctx.element.dataset.userId}/username`,
+});
+```
+
+`ctx` is the `Editable` instance (so you can read `ctx.element`, `ctx.getValue()`, etc.) and `newValue` is the value about to be submitted. The function is called fresh on every submit, so it always sees current data — for example, this reuses one config for many rows:
+
+```js
+function endpointFor(resource) {
+    return (ctx) => `/api/${resource}/${ctx.element.closest('[data-row-id]').dataset.rowId}`;
+}
+
+document.querySelectorAll('[data-type]').forEach(el => {
+    new Editable(el, { url: endpointFor('products') });
+});
+```
+
+### Custom request shape (`requestBuilder`)
+
+By default the library `POST`s a single `FormData` field, keyed by `name` (see above). If your backend expects JSON, a different HTTP method, extra headers, or anything else, take over the request entirely with `requestBuilder`:
+
+```js
+new Editable(el, {
+    url: '/api/users/42',
+    requestBuilder: (ctx, newValue, url) => ({
+        url,
+        init: {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [ctx.getOption('name')]: newValue }),
+        },
+    }),
+});
+```
+
+`requestBuilder` receives the `Editable` instance, the new value, and the already-resolved `url` (so it works the same whether `url` is a string or a function). It can be `async`:
+
+```js
+new Editable(el, {
+    requestBuilder: async (ctx, newValue, url) => {
+        const token = await getCsrfToken();
+        return {
+            url,
+            init: {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': token },
+                body: new URLSearchParams({ value: newValue }),
+            },
+        };
+    },
+});
+```
+
+When `requestBuilder` is set, it fully replaces the default request — `ajaxOptions` and the `name`-based field key no longer apply; you're building the whole `RequestInit` yourself, GET query strings included.
+
 ## Options
 
 Options can be set via JavaScript or `data-*` attributes. For multi-word camelCase options, use kebab-case in the attribute — the browser converts it automatically (e.g. `showButtons` → `data-show-buttons`, `displayFormat` → `data-display-format`).
+
+Object/function-valued options (`ajaxOptions`, `attributes`, `popoverOptions`, `requestBuilder`, `success`, `error`, a function `url`) can only be set from JavaScript — `data-*` attributes are always strings, so there's no way to express an object or a function through them. Change these through `new Editable(el, {...})`, not markup.
 
 #### Core
 
@@ -114,17 +173,17 @@ Options can be set via JavaScript or `data-*` attributes. For multi-word camelCa
 | `type` | `string \| class` | `'text'` | Input type: `text`, `textarea`, `select`, `date`, `datetime`, an [HTML5 type](#html5-types), or a custom `BaseType` subclass. |
 | `mode` | `string` | `'popup'` | `'popup'` (Bootstrap Popover) or `'inline'` (renders in place). |
 | `value` | `mixed` | element's text | Initial value. Falls back to the element's text content. |
-| `name` | `string` | element's `id` | Field name submitted to the server. |
+| `name` | `string` | element's `id`, or `'value'` | Key the new value is submitted under (see [Backend contract](#backend-contract)). |
 | `title` | `string` | `''` | Popover/form title. |
 
 #### Networking
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `url` | `string \| null` | `null` | Endpoint the new value is submitted to. |
-| `pk` | `string \| null` | `null` | Primary key of the record being updated. |
-| `send` | `boolean` | `true` | When `true`, the value is sent to `url` only if `pk` and `url` are both set; otherwise it's only stored locally on the element. |
-| `ajaxOptions` | `object` | `{ method: 'POST' }` | Extra [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit) options merged into the `fetch()` call. |
+| `url` | `string \| ((context, newValue) => string) \| null` | `null` | Endpoint the new value is submitted to. A function is resolved on every submit with the current instance and the new value — useful for per-record REST endpoints now that there's no `pk`. Only a plain string works via `data-url`; a function must be set from JavaScript. |
+| `requestBuilder` | `(context, newValue, resolvedUrl) => { url, init }` | `null` | Fully overrides how the request is built (method, headers, body). Set from JavaScript only. See [Custom request shape](#custom-request-shape-requestbuilder). |
+| `send` | `boolean` | `true` | When `true`, the value is sent to `url` if it's set; otherwise it's only stored locally on the element. |
+| `ajaxOptions` | `object` | `{ method: 'POST' }` | Extra [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit) options merged into the `fetch()` call. `method` must be a body-carrying verb (`POST`/`PUT`/`PATCH`/`DELETE`) — `GET` isn't supported here since saving an edit is a mutation; use `requestBuilder` if you need a bodyless request. JS only. |
 
 #### Display
 
@@ -132,7 +191,7 @@ Options can be set via JavaScript or `data-*` attributes. For multi-word camelCa
 |---|---|---|---|
 | `emptyText` | `string` | `'Empty'` | Text shown when the value is empty. |
 | `showButtons` | `boolean` | `true` | When `false`, the form has no save/cancel buttons and auto-submits on `change`. |
-| `popoverOptions` | `object` | `{}` | Passed through to the underlying [Bootstrap Popover](https://getbootstrap.com/docs/5.3/components/popovers/#options). Only applies in `popup` mode. |
+| `popoverOptions` | `object` | `{}` | Passed through to the underlying [Bootstrap Popover](https://getbootstrap.com/docs/5.3/components/popovers/#options). Only applies in `popup` mode. JS only. |
 
 #### State
 
@@ -248,7 +307,7 @@ All events dispatch with `event.detail.Editable` set to the instance.
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `attributes` | `object` | `{}` | Map of native HTML5 attributes applied to the input. |
+| `attributes` | `object` | `{}` | Map of native HTML5 attributes applied to the input. JS only. |
 
 ```js
 const editable = new Editable(el, {

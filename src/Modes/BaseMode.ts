@@ -5,14 +5,14 @@ export default class BaseMode{
 
     constructor(context: Editable) {
         if(this.constructor === BaseMode){
-            throw new Error(`It's abstract class`);
+            throw new Error("BaseMode is abstract and cannot be instantiated directly — create a subclass that implements init()/enable()/disable()/hide()/destroy() (see PopupMode, InlineMode).");
         }
         this.context = context;
     }
     event_show(){
         this.context.typeElement.hideError();
         if(!this.context.typeElement.element){
-            throw new Error("Element is missing!");
+            throw new Error(`${this.context.typeElement.constructor.name}.create() did not call createContainer() — the input element was never set.`);
         }
         this.context.typeElement.element.value = this.context.getValue();
         this.context.element.dispatchEvent(new CustomEvent("show", {detail: {Editable: this.context}}));
@@ -27,18 +27,18 @@ export default class BaseMode{
         this.context.element.dispatchEvent(new CustomEvent("hidden", {detail: {Editable: this.context}}));
     }
     init(){
-        throw new Error('Method `init` not define!');
+        throw new Error(`${this.constructor.name} must implement init().`);
     }
     enable(){
-        throw new Error('Method `enable` not define!');
+        throw new Error(`${this.constructor.name} must implement enable().`);
     }
     disable(){
-        throw new Error('Method `disable` not define!');
+        throw new Error(`${this.constructor.name} must implement disable().`);
     }
     hide(){
-        throw new Error('Method `hide` not define!');
+        throw new Error(`${this.constructor.name} must implement hide().`);
     }
     destroy(){
-        throw new Error('Method `destroy` not define!');
+        throw new Error(`${this.constructor.name} must implement destroy().`);
     }
 }

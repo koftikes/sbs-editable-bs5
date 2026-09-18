@@ -88,6 +88,13 @@ export default class Editable{
         return this.options[name] = this.element.dataset?.[ name ] ?? this.options?.[ name ] ?? default_value;
     }
 
+    get_opt_object(name: string, default_value: any): void
+    {
+        // Object-valued options are JS-only — dataset is deliberately not read here
+        // @ts-ignore
+        this.options[name] = this.options?.[name] ?? default_value;
+    }
+
     get_opt_bool(name: string, default_value: any): void
     {
         this.get_opt(name, default_value);
@@ -114,14 +121,13 @@ export default class Editable{
     {
         //priority date elements
         this.get_opt("value", this.element.textContent ?? "");
-        this.get_opt("name", this.element.id);
-        this.get_opt("pk", null);
+        this.get_opt("name", this.element.id || "value");
         this.get_opt("title", "");
         this.get_opt("type", "text");
         this.get_opt("emptyText", "Empty");
         this.get_opt("mode", "popup");
         this.get_opt("url", null);
-        this.get_opt("ajaxOptions", {});
+        this.get_opt_object("ajaxOptions", {});
         this.options.ajaxOptions = Object.assign({
             method: "POST",
         }, this.options.ajaxOptions);
@@ -135,8 +141,8 @@ export default class Editable{
         if(this.options?.error && typeof this.options?.error === "function"){
             this.error = this.options.error;
         }
-        this.get_opt("attributes", {});
-        this.get_opt("popoverOptions", {});
+        this.get_opt_object("attributes", {});
+        this.get_opt_object("popoverOptions", {});
     }
 
     init_text(){
@@ -156,7 +162,7 @@ export default class Editable{
     {
         const ModeClass = Editable.modes.get(this.options.mode as string);
         if(!ModeClass){
-            throw new Error(`Mode ${this.options.mode} not found!`);
+            throw new Error(`Mode "${this.options.mode}" is not registered. Available modes: ${[...Editable.modes.keys()].join(', ')}. Register custom modes via Editable.registerMode(name, ModeClass).`);
         }
         return new ModeClass(this);
     }
@@ -169,7 +175,7 @@ export default class Editable{
         }
         const TypeClass = Editable.types.get(this.options.type as string);
         if(!TypeClass){
-            throw new Error(`Undefined type: ${this.options.type}`);
+            throw new Error(`Type "${this.options.type}" is not registered. Available types: ${[...Editable.types.keys()].join(', ')}. Register custom types via Editable.registerType(name, TypeClass).`);
         }
         return new TypeClass(this);
     }

@@ -25,6 +25,6 @@ export default interface Options {
     render?: (text: string, context: Editable) => string;
     format?: string;
     displayFormat?: string;
-    source?: [{ value: string | number; text: string }] | string;
+    source?: Array<{ value: string | number; text: string }> | string;
     attributes?: { [key: string]: string | number | boolean | undefined };
 }

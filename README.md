@@ -124,7 +124,7 @@ document.querySelectorAll('[data-type]').forEach(el => {
 
 ### Custom request shape (`requestBuilder`)
 
-By default the library `POST`s a single `FormData` field, keyed by `name` (see above). If your backend expects JSON, a different HTTP method, extra headers, or anything else, take over the request entirely with `requestBuilder`:
+By default, the library `POST`s a single `FormData` field, keyed by `name` (see above). If your backend expects JSON, a different HTTP method, extra headers, or anything else, take over the request entirely with `requestBuilder`:
 
 ```js
 new Editable(el, {

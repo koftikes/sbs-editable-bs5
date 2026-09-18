@@ -1,22 +1,18 @@
-import "./editable.css";
-import PopupMode from "./Modes/PopupMode.ts";
-import InlineMode from "./Modes/InlineMode.ts";
-import BaseType from "./Types/BaseType.ts";
-import InputType from "./Types/InputType.ts";
-import TextAreaType from "./Types/TextAreaType.ts";
-import SelectType from "./Types/SelectType.ts";
-import DateType from "./Types/DateType.ts";
-import DateTimeType from "./Types/DateTimeType.ts";
-import Options from "./Interfaces/Options.ts";
-import BaseMode from "./Modes/BaseMode.ts";
+import './editable.css';
+import type Options from './Interfaces/Options.ts';
+import BaseMode from './Modes/BaseMode.ts';
+import InlineMode from './Modes/InlineMode.ts';
+import PopupMode from './Modes/PopupMode.ts';
+import BaseType from './Types/BaseType.ts';
+import DateTimeType from './Types/DateTimeType.ts';
+import DateType from './Types/DateType.ts';
+import InputType from './Types/InputType.ts';
+import SelectType from './Types/SelectType.ts';
+import TextAreaType from './Types/TextAreaType.ts';
 
 export type { Options };
 
-/*!
- * Editable.js
- * License: MIT
- */
-export default class Editable{
+export default class Editable {
     static BaseType = BaseType;
     static BaseMode = BaseMode;
     static InputType = InputType;
@@ -28,32 +24,30 @@ export default class Editable{
     static InlineMode = InlineMode;
 
     static types: Map<string, typeof BaseType> = new Map<string, typeof BaseType>([
-        ["text", InputType],
-        ["password", InputType],
-        ["email", InputType],
-        ["url", InputType],
-        ["tel", InputType],
-        ["number", InputType],
-        ["range", InputType],
-        ["time", InputType],
-        ["textarea", TextAreaType],
-        ["select", SelectType],
-        ["date", DateType],
-        ["datetime", DateTimeType],
+        ['text', InputType],
+        ['password', InputType],
+        ['email', InputType],
+        ['url', InputType],
+        ['tel', InputType],
+        ['number', InputType],
+        ['range', InputType],
+        ['time', InputType],
+        ['textarea', TextAreaType],
+        ['select', SelectType],
+        ['date', DateType],
+        ['datetime', DateTimeType],
     ]);
 
     static modes: Map<string, typeof BaseMode> = new Map<string, typeof BaseMode>([
-        ["popup", PopupMode],
-        ["inline", InlineMode],
+        ['popup', PopupMode],
+        ['inline', InlineMode],
     ]);
 
-    static registerType(name: string, type: typeof BaseType): void
-    {
+    static registerType(name: string, type: typeof BaseType): void {
         Editable.types.set(name, type);
     }
 
-    static registerMode(name: string, mode: typeof BaseMode): void
-    {
+    static registerMode(name: string, mode: typeof BaseMode): void {
         Editable.modes.set(name, mode);
     }
 
@@ -66,7 +60,6 @@ export default class Editable{
     constructor(element: HTMLElement, options: Options = {}) {
         this.element = element;
         this.options = { ...options };
-
         this.init_options();
         this.typeElement = this.route_type();
         this.typeElement.initOptions();
@@ -74,168 +67,144 @@ export default class Editable{
         this.modeElement.init();
         this.init_text();
         this.init_style();
-        if(this.options.disabled){
-            this.disable();
-        }
-        this.element.dispatchEvent(new CustomEvent("init", {detail: {Editable: this}}));
+        this.options.disabled ? this.disable() : this.enable();
+        this.element.dispatchEvent(new CustomEvent('init', { detail: { Editable: this } }));
     }
 
-    /* INIT METHODS */
-
-    get_opt(name: string, default_value: any): any
-    {
-        // @ts-ignore
-        return this.options[name] = this.element.dataset?.[ name ] ?? this.options?.[ name ] ?? default_value;
+    // Options has no index signature by design (keeps the public shape autocomplete-friendly),
+    // so these two helpers are the only place that reads/writes it dynamically by name.
+    private readOption(name: string): unknown {
+        // @ts-expect-error
+        return this.options[name];
     }
 
-    get_opt_object(name: string, default_value: any): void
-    {
+    private writeOption(name: string, value: unknown): void {
+        // @ts-expect-error
+        this.options[name] = value;
+    }
+
+    get_opt(name: string, default_value: unknown): unknown {
+        const value = this.element.dataset?.[name] ?? this.readOption(name) ?? default_value;
+        this.writeOption(name, value);
+        return value;
+    }
+
+    get_opt_object(name: string, default_value: unknown): void {
         // Object-valued options are JS-only — dataset is deliberately not read here
-        // @ts-ignore
-        this.options[name] = this.options?.[name] ?? default_value;
+        this.writeOption(name, this.readOption(name) ?? default_value);
     }
 
-    get_opt_bool(name: string, default_value: any): void
-    {
+    get_opt_bool(name: string, default_value: boolean): void {
         this.get_opt(name, default_value);
-        // @ts-ignore
-        if(typeof this.options[ name ] !== "boolean"){
-            // @ts-ignore
-            if(this.options[ name ] === "true") {
-                // @ts-ignore
-                this.options[ name ] = true;
+        if (typeof this.readOption(name) !== 'boolean') {
+            if (this.readOption(name) === 'true') {
+                this.writeOption(name, true);
                 return;
             }
-            // @ts-ignore
-            if(this.options[ name ] === "false") {
-                // @ts-ignore
-                this.options[ name ] = false;
+            if (this.readOption(name) === 'false') {
+                this.writeOption(name, false);
                 return;
             }
-            // @ts-ignore
-            this.options[ name ] = default_value;
+            this.writeOption(name, default_value);
         }
     }
 
-    init_options(): void
-    {
+    init_options(): void {
         //priority date elements
-        this.get_opt("value", this.element.textContent ?? "");
-        this.get_opt("name", this.element.id || "value");
-        this.get_opt("title", "");
-        this.get_opt("type", "text");
-        this.get_opt("emptyText", "Empty");
-        this.get_opt("mode", "popup");
-        this.get_opt("url", null);
-        this.get_opt_object("ajaxOptions", {});
-        this.options.ajaxOptions = Object.assign({
-            method: "POST",
-        }, this.options.ajaxOptions);
-        this.get_opt_bool("send", true);
-        this.get_opt_bool("disabled", false);
-        this.get_opt_bool("required", false);
-        this.get_opt_bool("showButtons", true);
-        if(this.options?.success && typeof this.options?.success === "function"){
+        this.get_opt('value', this.element.textContent ?? '');
+        this.get_opt('name', this.element.id || 'value');
+        this.get_opt('title', '');
+        this.get_opt('type', 'text');
+        this.get_opt('emptyText', 'Empty');
+        this.get_opt('mode', 'popup');
+        this.get_opt('url', null);
+        this.get_opt_object('ajaxOptions', {});
+        this.options.ajaxOptions = Object.assign({ method: 'POST' }, this.options.ajaxOptions);
+        this.get_opt_bool('send', true);
+        this.get_opt_bool('disabled', false);
+        this.get_opt_bool('required', false);
+        this.get_opt_bool('showButtons', true);
+        if (this.options?.success && typeof this.options?.success === 'function') {
             this.success = this.options.success;
         }
-        if(this.options?.error && typeof this.options?.error === "function"){
+        if (this.options?.error && typeof this.options?.error === 'function') {
             this.error = this.options.error;
         }
-        this.get_opt_object("attributes", {});
-        this.get_opt_object("popoverOptions", {});
+        this.get_opt_object('attributes', {});
+        this.get_opt_object('popoverOptions', {});
     }
 
-    init_text(){
-        const empty_class = "editable-element-empty";
+    init_text() {
+        const empty_class = 'editable-element-empty';
         this.element.classList.remove(empty_class);
-        if(this.typeElement.initText()){
+        if (this.typeElement.initText()) {
             this.element.classList.add(empty_class);
         }
     }
 
-    init_style(){
-        this.element.classList.add("editable-element");
+    init_style() {
+        this.element.classList.add('editable-element');
     }
 
-    /* INIT METHODS END */
-    route_mode(): BaseMode
-    {
+    route_mode(): BaseMode {
         const ModeClass = Editable.modes.get(this.options.mode as string);
-        if(!ModeClass){
-            throw new Error(`Mode "${this.options.mode}" is not registered. Available modes: ${[...Editable.modes.keys()].join(', ')}. Register custom modes via Editable.registerMode(name, ModeClass).`);
+        if (!ModeClass) {
+            throw new Error(
+                `Mode "${this.options.mode}" is not registered. Available modes: ${[...Editable.modes.keys()].join(', ')}. Register custom modes via Editable.registerMode(name, ModeClass).`,
+            );
         }
         return new ModeClass(this);
     }
 
-    route_type(): BaseType
-    {
-        if(this.options.type && typeof this.options.type !== 'string'){
-            // @ts-ignore
+    route_type(): BaseType {
+        if (this.options.type && typeof this.options.type !== 'string') {
+            // @ts-expect-error
             return new this.options.type(this);
         }
         const TypeClass = Editable.types.get(this.options.type as string);
-        if(!TypeClass){
-            throw new Error(`Type "${this.options.type}" is not registered. Available types: ${[...Editable.types.keys()].join(', ')}. Register custom types via Editable.registerType(name, TypeClass).`);
+        if (!TypeClass) {
+            throw new Error(
+                `Type "${this.options.type}" is not registered. Available types: ${[...Editable.types.keys()].join(', ')}. Register custom types via Editable.registerType(name, TypeClass).`,
+            );
         }
         return new TypeClass(this);
     }
 
-    /* AJAX */
-
-    async success(response: Response, newValue: string): Promise<any>
-    {
+    async success(response: Response, newValue: string): Promise<string | undefined> {
         return await this.typeElement.successResponse(response, newValue);
     }
 
-    async error(response: Response, newValue: string): Promise<any>
-    {
+    async error(response: Response, newValue: string): Promise<string | undefined> {
         return await this.typeElement.errorResponse(response, newValue);
     }
 
-    /* AJAX END */
-
-    /* METHODS */
-
-    enable(): void
-    {
+    enable(): void {
         this.options.disabled = false;
-        this.element.classList.remove("editable-element-disabled");
+        this.element.classList.remove('editable-element-disabled');
         this.modeElement.enable();
     }
 
-    disable(): void
-    {
+    disable(): void {
         this.options.disabled = true;
-        this.element.classList.add("editable-element-disabled");
+        this.element.classList.add('editable-element-disabled');
         this.modeElement.disable();
     }
 
-    setValue(value: string): void
-    {
+    setValue(value: string): void {
         this.options.value = value;
         this.init_text();
     }
 
-    getValue(): string
-    {
+    getValue(): string {
         return this.options.value ?? '';
     }
 
-    getOption(name: string): any
-    {
-        // @ts-ignore
-        return this.options[name] ?? null;
+    getOption(name: string): unknown {
+        return this.readOption(name) ?? null;
     }
 
-    destroy(): void
-    {
+    destroy(): void {
         this.modeElement.destroy();
-        this.element.classList.remove(
-            "editable-element",
-            "editable-element-disabled",
-            "editable-element-empty"
-        );
+        this.element.classList.remove('editable-element', 'editable-element-disabled', 'editable-element-empty');
     }
-
-    /* METHODS END */
 }

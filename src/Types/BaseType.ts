@@ -22,6 +22,26 @@ export default class BaseType {
         throw new Error(`${this.constructor.name} must implement create().`);
     }
 
+    // Flags options that only make sense for a different type (e.g. `format` on a `text` field) —
+    // they're silently ignored otherwise, which is easy to miss. Override per-type as needed.
+    checkUnsupportedOptions(): void {
+        if (this.context.options.format !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "format" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.displayFormat !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "displayFormat" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.source !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "source" option — it only applies to type: 'select'. It will be ignored.`,
+            );
+        }
+    }
+
     createContainer(element: HTMLInputElement): HTMLDivElement {
         const div = document.createElement(`div`);
         this.element = element;
@@ -200,6 +220,7 @@ export default class BaseType {
         if (this.context.options.required) {
             element.required = this.context.options.required;
         }
+        this.applyAttributes(element);
         if (!this.context.options.showButtons) {
             element.addEventListener('change', () => {
                 if (this.form) {
@@ -209,6 +230,29 @@ export default class BaseType {
         }
         this.add_focus(element);
         return element;
+    }
+
+    private applyAttributes(element: HTMLInputElement): void {
+        const attrs = this.context.options.attributes || {};
+        const allowedAttributes = [
+            'step',
+            'min',
+            'max',
+            'minlength',
+            'maxlength',
+            'pattern',
+            'placeholder',
+            'required',
+            'readonly',
+            'disabled',
+            'autocomplete',
+            'autofocus',
+        ];
+        for (const [key, value] of Object.entries(attrs)) {
+            if (allowedAttributes.includes(key) && value !== undefined) {
+                element.setAttribute(key, String(value));
+            }
+        }
     }
 
     add_focus(element: HTMLInputElement): void {
@@ -226,7 +270,10 @@ export default class BaseType {
             this.context.element.textContent = this.context.options.emptyText || '';
             return true;
         } else {
-            this.context.element.textContent = this.context.getValue();
+            const text = this.context.getValue();
+            this.context.element.textContent = this.context.options.render
+                ? this.context.options.render(text, this.context)
+                : text;
             return false;
         }
     }

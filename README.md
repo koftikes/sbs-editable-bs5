@@ -39,8 +39,9 @@ Or include the pre-built files directly:
 Key attributes:
 - `type` — input type (`text`, `textarea`, `select`, `date`, ...)
 - `url` — endpoint that receives the submitted value (e.g. `/post`)
-- `data-name` — the key the new value is submitted under. Falls back to the element's `id`, then to the literal key `value` if neither is set.
 - `value` — initial value; if omitted, taken from the element's text content
+
+(`name` — the key the value is submitted under — defaults to the element's `id`; see [Options](#options) for the full fallback chain.)
 
 **2. Initialize it:**
 
@@ -59,7 +60,7 @@ const editable = new Editable(el, {
 });
 ```
 
-**3. Click the element, edit, submit.** The library sends a `POST` (by default) to `url` — the body is a single field, keyed by `name` (or the element's `id`, or the literal key `value` if neither is set):
+**3. Click the element, edit, submit.** The library sends a `POST` (by default) to `url` — the body is a single field keyed by `name` (see [Options](#options)):
 
 ```
 username: 'superuser!'
@@ -160,17 +161,35 @@ new Editable(el, {
 
 When `requestBuilder` is set, it fully replaces the default request — `ajaxOptions` and the `name`-based field key no longer apply; you're building the whole `RequestInit` yourself, GET query strings included.
 
+### Number formatting
+
+Native `<input type="number">` only accepts the plain HTML number syntax — no thousands separators, no spaces. Setting `value` to a pre-formatted string like `'30 000.00'` doesn't work: the browser silently empties the field instead of showing it. Keep `value` (and whatever the input holds while editing) as a plain parseable number, and use `render` to control what's shown once the form is closed:
+
+```js
+new Editable(el, {
+    type: 'number',
+    value: '30000.00',
+    render: (value) => {
+        const [integer, decimals] = parseFloat(value).toFixed(2).split('.');
+        const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        return `${grouped}.${decimals}`;
+    },
+});
+```
+
+Shows `30 000.00` on the element; the input still receives and sends the plain `30000.00`. The same technique works with `Intl.NumberFormat` for locale-aware formatting — just be aware that some locales (e.g. `ru-RU`, `fr-FR`) group with a non-breaking space rather than a regular one.
+
 ## Options
 
 Options can be set via JavaScript or `data-*` attributes. For multi-word camelCase options, use kebab-case in the attribute — the browser converts it automatically (e.g. `showButtons` → `data-show-buttons`, `displayFormat` → `data-display-format`).
 
-Object/function-valued options (`ajaxOptions`, `attributes`, `popoverOptions`, `requestBuilder`, `success`, `error`, a function `url`) can only be set from JavaScript — `data-*` attributes are always strings, so there's no way to express an object or a function through them. Change these through `new Editable(el, {...})`, not markup.
+Object/function-valued options (`ajaxOptions`, `attributes`, `popoverOptions`, `requestBuilder`, `render`, `success`, `error`, a function `url`) can only be set from JavaScript — `data-*` attributes are always strings, so there's no way to express an object or a function through them. Change these through `new Editable(el, {...})`, not markup.
 
 #### Core
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `type` | `string \| class` | `'text'` | Input type: `text`, `textarea`, `select`, `date`, `datetime`, an [HTML5 type](#html5-types), or a custom `BaseType` subclass. |
+| `type` | `string \| class` | `'text'` | Input type: `text`, `textarea`, `select`, `date`, `datetime`, a [simple input type](#simple-input-types), or a custom `BaseType` subclass. |
 | `mode` | `string` | `'popup'` | `'popup'` (Bootstrap Popover) or `'inline'` (renders in place). |
 | `value` | `mixed` | element's text | Initial value. Falls back to the element's text content. |
 | `name` | `string` | element's `id`, or `'value'` | Key the new value is submitted under (see [Backend contract](#backend-contract)). |
@@ -192,27 +211,28 @@ Object/function-valued options (`ajaxOptions`, `attributes`, `popoverOptions`, `
 | `emptyText` | `string` | `'Empty'` | Text shown when the value is empty. |
 | `showButtons` | `boolean` | `true` | When `false`, the form has no save/cancel buttons and auto-submits on `change`. |
 | `popoverOptions` | `object` | `{}` | Passed through to the underlying [Bootstrap Popover](https://getbootstrap.com/docs/5.3/components/popovers/#options). Only applies in `popup` mode. JS only. |
+| `render` | `(text, context) => string` | `null` | Final pass over the text shown on the closed element — receives whatever the type would otherwise display (the raw value for `text`/`number`/`textarea`, the matched option's label for `select`, the string already formatted via `displayFormat` for `date`/`datetime`). Never affects the value sent to the server or the input while editing — see [Number formatting](#number-formatting). JS only. |
 
 #### State
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `disabled` | `boolean` | `false` | Disables the editable on init. |
-| `required` | `boolean` | `false` | Marks the input as required (native HTML5 validation). |
+| `required` | `boolean` | `false` | Marks the input as required (native HTML5 validation). Equivalent to `attributes.required` — either works, no need to set both. |
+| `attributes` | `object` | `{}` | Map of native HTML attributes applied to the generated element — works for every type (`text`, `textarea`, `select`, `date`, etc.), not just [simple input types](#simple-input-types). JS only. `attributes.disabled` disables the *input inside an already-open form* (the popover/inline trigger still opens normally) — see [Methods](#methods) for blocking the trigger itself; this is a different thing from the top-level `disabled` state. `attributes.required` is equivalent to the top-level `required` option above. |
 
 #### Callbacks
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `success` | `(response, newValue) => Promise<string \| void>` | `null` | Called after a `2xx` response. Return a truthy string to show it as an error instead of accepting the value. |
-| `error` | `(response, newValue) => Promise<string \| void>` | `null` | Called after a non-`2xx` response. Return a string to override the default error message. |
+| `success` | `(response, newValue) => Promise<string \| undefined>` | `null` | Called after a `2xx` response. Return a truthy string to show it as an error instead of accepting the value. |
+| `error` | `(response, newValue) => Promise<string \| undefined>` | `null` | Called after a non-`2xx` response. Return a string to override the default error message. |
 
 ## Methods
 
 | Method | Parameters | Description |
 |---|---|---|
-| `enable()` | — | Enables the editable. |
-| `disable()` | — | Disables the editable. |
+| `enable()` | — | Enables the editable (blocks nothing — the trigger opens normally). New instances start enabled; there's no init-time option for this, call `.disable()` right after construction if you need to start disabled. |
+| `disable()` | — | Disables the editable — blocks the popover/inline trigger from opening at all. Different from `attributes.disabled` (see [Options](#options)). |
 | `getValue()` | — | Returns the current value. |
 | `setValue(value)` | `value: Mixed` | Sets a new value and re-renders the display text. |
 | `getOption(name)` | `name: string` | Returns the current value of an option. |
@@ -259,21 +279,24 @@ All events dispatch with `event.detail.Editable` set to the instance.
 
 ## Input types
 
-### Text
+### Simple input types
 
-`type: 'text'`
+`type`: `text` (default), `textarea`, `password`, `email`, `url`, `tel`, `number`, `range`, `time`
 
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `placeholder` | `string` | `null` | Shown when the input is empty. |
+None of these have type-specific top-level options — everything goes through the generic `attributes` option (see [Options](#options)), applied as native HTML attributes on the generated element. Allowed keys: `placeholder`, `min`, `max`, `step`, `pattern`, `minlength`, `maxlength`, `readonly`, `autocomplete`, `autofocus`, `required`, `disabled`.
 
-### Textarea
-
-`type: 'textarea'`
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `placeholder` | `string` | `null` | Shown when the input is empty. |
+```js
+const editable = new Editable(el, {
+    type: 'number',
+    attributes: {
+        placeholder: 'Enter age',
+        min: 0,
+        max: 120,
+        step: 1,
+        required: true,
+    },
+});
+```
 
 ### Select
 
@@ -300,24 +323,3 @@ All events dispatch with `event.detail.Editable` set to the instance.
 |---|---|---|---|
 | `format` | `string` | `YYYY-MM-DDTHH:mm` | Format used when submitting the value to the server, and when reading it from the `data-value` attribute. Uses [day.js tokens](https://day.js.org/docs/en/parse/string-format). |
 | `displayFormat` | `string` | `YYYY-MM-DDTHH:mm` | Format used when displaying the value on the element. |
-
-### HTML5 types
-
-`type`: `password`, `email`, `url`, `tel`, `number`, `range`, `time`
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `attributes` | `object` | `{}` | Map of native HTML5 attributes applied to the input. JS only. |
-
-```js
-const editable = new Editable(el, {
-    type: 'number',
-    attributes: {
-        placeholder: 'Enter age',
-        min: 0,
-        max: 120,
-        step: 1,
-        required: true,
-    },
-});
-```

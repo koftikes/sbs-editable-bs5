@@ -8,7 +8,6 @@ export default interface Options {
     title?: string;
     type?: BaseType | string;
     ajaxOptions?: RequestInit;
-    disabled?: boolean;
     send?: boolean;
     mode?: 'popup' | 'inline';
     emptyText?: string;
@@ -23,6 +22,7 @@ export default interface Options {
     success?: (response: Response, newValue: string | number) => Promise<string | undefined>;
     error?: (response: Response, newValue: string | number) => Promise<string | undefined>;
     popoverOptions?: Popover.Options;
+    render?: (text: string, context: Editable) => string;
     format?: string;
     displayFormat?: string;
     source?: [{ value: string | number; text: string }] | string;

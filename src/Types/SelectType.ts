@@ -1,6 +1,19 @@
 import BaseType from './BaseType.js';
 
 export default class SelectType extends BaseType {
+    checkUnsupportedOptions(): void {
+        if (this.context.options.format !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "format" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.displayFormat !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "displayFormat" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
+            );
+        }
+    }
+
     create() {
         const select = this.createElement(`select`);
         if (this.context.options.source && Array.isArray(this.context.options.source)) {
@@ -26,7 +39,9 @@ export default class SelectType extends BaseType {
             for (let i = 0; i < this.context.options.source.length; i++) {
                 const item = this.context.options.source[i];
                 if (String(item.value) === this.context.getValue()) {
-                    this.context.element.textContent = item.text;
+                    this.context.element.textContent = this.context.options.render
+                        ? this.context.options.render(item.text, this.context)
+                        : item.text;
                     return false;
                 }
             }

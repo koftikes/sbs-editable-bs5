@@ -2,10 +2,11 @@ import BaseMode from './BaseMode.js';
 
 export default class InlineMode extends BaseMode {
     private openHandler: (() => void) | null = null;
+    private disabled = false;
 
     init() {
         this.openHandler = () => {
-            if (!this.context.options.disabled) {
+            if (!this.disabled) {
                 const item = this.context.typeElement.create();
                 this.event_show();
                 this.removeOpenHandler();
@@ -23,9 +24,13 @@ export default class InlineMode extends BaseMode {
         }
     }
 
-    enable() {}
+    enable() {
+        this.disabled = false;
+    }
 
-    disable() {}
+    disable() {
+        this.disabled = true;
+    }
 
     hide() {
         this.event_hide();

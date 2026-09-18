@@ -5,6 +5,14 @@ import BaseType from './BaseType.js';
 dayjs.extend(customParseFormat);
 
 export default class DateType extends BaseType {
+    checkUnsupportedOptions(): void {
+        if (this.context.options.source !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "source" option — it only applies to type: 'select'. It will be ignored.`,
+            );
+        }
+    }
+
     create() {
         const input = this.createElement(`input`);
         input.type = 'date';
@@ -18,9 +26,10 @@ export default class DateType extends BaseType {
             this.context.element.textContent = this.context.options.emptyText || '';
             return true;
         } else {
-            this.context.element.textContent = dayjs(value, this.context.options.format).format(
-                this.context.options.displayFormat,
-            );
+            const text = dayjs(value, this.context.options.format).format(this.context.options.displayFormat);
+            this.context.element.textContent = this.context.options.render
+                ? this.context.options.render(text, this.context)
+                : text;
             return false;
         }
     }

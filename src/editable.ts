@@ -62,12 +62,12 @@ export default class Editable {
         this.options = { ...options };
         this.init_options();
         this.typeElement = this.route_type();
+        this.typeElement.checkUnsupportedOptions();
         this.typeElement.initOptions();
         this.modeElement = this.route_mode();
         this.modeElement.init();
         this.init_text();
         this.init_style();
-        this.options.disabled ? this.disable() : this.enable();
         this.element.dispatchEvent(new CustomEvent('init', { detail: { Editable: this } }));
     }
 
@@ -121,7 +121,6 @@ export default class Editable {
         this.get_opt_object('ajaxOptions', {});
         this.options.ajaxOptions = Object.assign({ method: 'POST' }, this.options.ajaxOptions);
         this.get_opt_bool('send', true);
-        this.get_opt_bool('disabled', false);
         this.get_opt_bool('required', false);
         this.get_opt_bool('showButtons', true);
         if (this.options?.success && typeof this.options?.success === 'function') {
@@ -179,13 +178,11 @@ export default class Editable {
     }
 
     enable(): void {
-        this.options.disabled = false;
         this.element.classList.remove('editable-element-disabled');
         this.modeElement.enable();
     }
 
     disable(): void {
-        this.options.disabled = true;
         this.element.classList.add('editable-element-disabled');
         this.modeElement.disable();
     }

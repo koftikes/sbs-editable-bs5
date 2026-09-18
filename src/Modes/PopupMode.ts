@@ -23,6 +23,13 @@ export default class PopupMode extends BaseMode {
             { signal },
         );
         this.context.element.addEventListener(
+            'inserted.bs.popover',
+            () => {
+                this.syncTheme();
+            },
+            { signal },
+        );
+        this.context.element.addEventListener(
             'shown.bs.popover',
             () => {
                 this.event_shown();
@@ -60,6 +67,18 @@ export default class PopupMode extends BaseMode {
             },
             { signal },
         );
+    }
+
+    // The tip is appended to <body> by default, outside any scoped data-bs-theme
+    // wrapper around the trigger — copy the nearest theme onto it explicitly so
+    // Bootstrap's CSS variables still resolve to the trigger's theme, not the page default.
+    private syncTheme(): void {
+        const themedAncestor = this.context.element.closest('[data-bs-theme]');
+        // @ts-expect-error — Popover.tip is an undocumented internal property
+        const tip = this.popover?.tip as HTMLElement | undefined;
+        if (tip && themedAncestor) {
+            tip.setAttribute('data-bs-theme', themedAncestor.getAttribute('data-bs-theme') ?? '');
+        }
     }
 
     enable(): void {

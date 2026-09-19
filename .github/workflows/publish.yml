@@ -25,6 +25,10 @@ jobs:
             -   name: Install dependencies
                 run: npm ci
 
+            -   name: Verify version
+                run: |
+                    test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+
             -   name: Lint
                 run: npm run lint
 

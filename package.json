@@ -1,16 +1,30 @@
 {
     "name": "@sbsweb/editable-bs5",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "publishConfig": {
         "access": "public"
     },
     "description": "In-place editing with Bootstrap 5",
+    "keywords": [
+        "bootstrap",
+        "bootstrap5",
+        "popover",
+        "editable",
+        "in-place-editing",
+        "click-to-edit",
+        "inline-edit",
+        "x-editable"
+    ],
     "author": "Konstantin Litvinov",
     "license": "MIT",
     "type": "module",
     "files": [
         "dist",
-        "src"
+        "src",
+        "doc",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "PUBLISHING.md"
     ],
     "main": "./dist/editable.js",
     "types": "./dist/editable.d.ts",

@@ -1,26 +1,32 @@
 # Publishing
 
-Releases are published to npm manually, from a maintainer's machine. CI
-(`.github/workflows/ci.yml`) only runs `lint` / `typecheck` / `test` / `build`
-on every push, PR, and version tag — it never runs `npm publish`. Two reasons:
+The **first** release is published to npm manually, from a maintainer's
+machine — npm's
+[trusted publishing](https://docs.npmjs.com/trusted-publishers) can only be
+configured for a package that already exists on the registry, so there's a
+bootstrap step. Every release **after** that is published automatically by
+`.github/workflows/publish.yml` when a `vX.Y.Z` tag is pushed, using OIDC
+(no npm token stored anywhere, no OTP prompt).
 
-- npm's [staged publishing](https://docs.npmjs.com/staged-publishing) flow
-  (stage → review → approve) **cannot be used for a package's first release**
-  — staging requires the package to already exist on the registry.
-- Publishing requires OTP/2FA approval, which doesn't fit an unattended CI
-  step anyway.
+`.github/workflows/ci.yml` (`lint` / `typecheck` / `test` / `build`) still
+runs on every push, PR, and tag — it never publishes. `publish.yml` runs its
+own `lint` → `test` → `build` → `publish` sequence before publishing, so it
+doesn't depend on `ci.yml` finishing first (the two workflows run in
+parallel on a tag push).
 
 ## Prerequisites
 
-- npm CLI ≥ 11.15.0, Node ≥ 22.14.0 (this repo's `.nvmrc` already satisfies
-  both).
-- Two-factor authentication enabled on your npm account.
+- npm CLI ≥ 11.5.1, Node ≥ 22.14.0 (this repo's `.nvmrc` already satisfies
+  both — required for trusted publishing, not just the manual first
+  release).
+- Two-factor authentication enabled on your npm account (needed for the
+  manual first release only; the automated flow doesn't prompt for OTP).
 - Membership in the `sbsweb` org on npm, with publish rights to
   `@sbsweb/editable-bs5`. Unlike an unscoped name, this is **not**
   first-come-first-served — an org admin has to add you
   (`npm org set sbsweb <user> developer` or via the npmjs.com UI) before you
   can publish.
-- A working npm session:
+- A working npm session (for the manual first release):
 
   ```bash
   npm whoami
@@ -30,32 +36,17 @@ on every push, PR, and version tag — it never runs `npm publish`. Two reasons:
   machine, run `npm login` first (see **Troubleshooting** below for what an
   invalid/expired token looks like).
 
-## Releasing
+## First release (v1.0.0) — manual `npm publish`
 
-1. Bump `version` in `package.json` and commit it.
-2. Tag and push:
-
-   ```bash
-   git tag vX.Y.Z
-   git push origin vX.Y.Z
-   ```
-
-   Wait for CI to go green on that tag (Actions tab) — it validates lint,
-   types, the full test suite, and that the library still builds. There is
-   **no automated check that the tag matches `package.json`'s version** —
-   double-check that yourself before publishing.
-3. Build and publish locally, from a clean checkout of the tag:
-
-   ```bash
-   npm ci
-   npm run build   # also runs automatically via prepublishOnly
-   ```
-
-### First release (v1.0.0) — plain `npm publish`
-
-Staging isn't available yet (see above), so publish directly:
+Trusted publishing isn't available yet (see above), so publish directly,
+from a clean checkout of the tag:
 
 ```bash
+git tag v1.0.0
+git push origin v1.0.0
+
+npm ci
+npm run build   # also runs automatically via prepublishOnly
 npm publish
 ```
 
@@ -64,29 +55,56 @@ Scoped packages publish **private** by default — `package.json` already sets
 `publishConfig.access: "public"`, so a plain `npm publish` still makes this
 one public without needing an explicit `--access public` flag.
 
-### Every release after that — staged publishing
+## One-time setup: connect the trusted publisher
 
-Once the package exists on the registry, use the three-step staged flow
-instead of a single blind `npm publish`:
+Once `@sbsweb/editable-bs5` exists on the registry (right after the step
+above), wire up automated releases:
+
+1. On npmjs.com: **Packages → `@sbsweb/editable-bs5` → Settings → Trusted
+   Publisher**.
+2. Add a **GitHub Actions** publisher with:
+   - **Organization or user:** `koftikes` (the GitHub account the repo
+     lives under — this is *not* the `sbsweb` npm org; those are two
+     separate namespaces).
+   - **Repository:** `sbs-editable-bs5`
+   - **Workflow filename:** `publish.yml` (filename only, not the full
+     `.github/workflows/` path).
+   - **Environment:** leave empty — the workflow doesn't use one.
+   - **Allowed actions:** enable `npm publish` (`npm stage publish` is
+     always allowed regardless).
+3. Confirm `repository.url` in `package.json` still matches the GitHub repo
+   exactly — trusted publishing authenticates against that field, and a
+   mismatch fails the OIDC exchange with an auth error, not a helpful one.
+
+This connection can't be edited afterward — only deleted and recreated — so
+double-check the fields before saving.
+
+## Every release after that — automated
 
 ```bash
-# 1. Stage — does not require 2FA
-npm stage publish
+# 1. Bump `version` in package.json and commit it.
+git commit -am "vX.Y.Z"
 
-# 2. Review — inspect exactly what would go live
-npm stage list
-npm stage view <stage-id>
-npm stage download <stage-id>   # pull the tarball and check its contents by hand
-
-# 3. Approve — this step prompts for OTP
-npm stage approve <stage-id>
+# 2. Tag and push — this is what triggers publish.yml.
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
-Nothing is public until step 3 completes.
+Watch the **Actions** tab: `publish.yml` checks out the tag, installs deps,
+lints, runs the full Playwright test suite, builds, then runs `npm publish`
+using a short-lived OIDC token — no `NPM_TOKEN` secret exists in this repo,
+and none should be added. Provenance is attached automatically for public
+packages published this way, no `--provenance` flag needed.
+
+There is **no automated check that the tag matches `package.json`'s
+version** — double-check that yourself before tagging.
 
 ## Troubleshooting
 
 ### `npm publish` fails with `E404 Not Found - PUT .../@sbsweb%2feditable-bs5`
+
+(Manual publish only — the automated flow surfaces a different error, see
+below.)
 
 This looks like "the package doesn't exist," but for a brand-new package name
 it almost always means **the request wasn't authenticated** — npm
@@ -123,4 +141,17 @@ it includes **read/write access to the `sbsweb` org's packages** (or "All
 packages" unrestricted) for the first release — npm can't let you scope a
 token to a package that doesn't exist yet. Once `v1.0.0` is live, you can
 create a narrower token scoped just to `@sbsweb/editable-bs5` for future
-staged-publish approvals.
+manual publishes, if you ever need one.
+
+### `publish.yml` fails on the `Publish` step with an OIDC/auth error
+
+- **Trusted publisher not configured yet** — see the one-time setup above;
+  until it exists, `npm publish` in CI has no credentials at all and fails
+  fast.
+- **`repository.url` mismatch** — must exactly match
+  `github.com/koftikes/sbs-editable-bs5`, protocol and all.
+- **Workflow filename mismatch** — the trusted publisher config must say
+  exactly `publish.yml`; renaming the workflow file requires updating (or
+  recreating) that config too.
+- **Missing `id-token: write`** — check `permissions:` at the top of
+  `publish.yml` wasn't edited away; without it no OIDC token is minted.

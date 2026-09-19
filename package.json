@@ -1,13 +1,14 @@
 {
-    "name": "sbs-editable-bs5",
+    "name": "@sbsweb/editable-bs5",
+    "version": "1.0.0",
+    "publishConfig": {
+        "access": "public"
+    },
     "description": "In-place editing with Bootstrap 5",
     "author": "Konstantin Litvinov",
     "license": "MIT",
     "type": "module",
-    "files": [
-        "dist",
-        "src"
-    ],
+    "files": ["dist", "src"],
     "main": "./dist/editable.js",
     "types": "./dist/editable.d.ts",
     "exports": {
@@ -45,7 +46,6 @@
         "test": "vitest run",
         "test:watch": "vitest"
     },
-    "version": "1.0.0",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/koftikes/sbs-editable-bs5.git"

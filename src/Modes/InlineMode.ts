@@ -34,7 +34,7 @@ export default class InlineMode extends BaseMode {
 
     hide() {
         this.event_hide();
-        this.context.element.textContent = this.context.getValue();
+        this.context.init_text();
         setTimeout(() => {
             this.init();
             this.event_hidden();

@@ -13,15 +13,6 @@ Options can be supplied either through JavaScript or, where supported, through `
 | `title` | Editor title |
 | `required` | Enables required-value validation |
 
-## Networking
-
-| Option | Description |
-| --- | --- |
-| `url` | Server endpoint or dynamic URL function |
-| `requestBuilder` | Custom request implementation |
-| `send` | Controls whether a server request is performed |
-| `ajaxOptions` | Additional options for the default request |
-
 ## Display
 
 | Option | Description |
@@ -31,12 +22,14 @@ Options can be supplied either through JavaScript or, where supported, through `
 | `popoverOptions` | Bootstrap popover configuration |
 | `render` | Converts the value into its display representation |
 
-## State and attributes
+## Networking
 
 | Option | Description |
 | --- | --- |
-| `required` | Marks the editor value as required |
-| `attributes` | Additional HTML attributes applied to the generated input |
+| `url` | Server endpoint or dynamic URL function |
+| `send` | Controls whether a server request is performed |
+| `ajaxOptions` | Additional options for the default request |
+| `requestBuilder` | Fully replaces the default request — see [Server integration](server-integration.md) |
 
 ## Callbacks
 
@@ -44,6 +37,26 @@ Options can be supplied either through JavaScript or, where supported, through `
 | --- | --- |
 | `success` | Called after a successful save |
 | `error` | Called when saving fails |
+
+## `type: 'date'` / `type: 'datetime'` only
+
+| Option | Description |
+| --- | --- |
+| `format` | Value format sent to/from the server (day.js tokens) |
+| `displayFormat` | Format used for the value shown on the trigger |
+
+## `type: 'select'` only
+
+| Option | Description |
+| --- | --- |
+| `source` | The option list — array, `{value: text}` map, ajax URL, or a function. See [Input types and editing modes](input-types-and-modes.md#select) |
+| `sourceCache` | Cache an ajax `source` response by URL across fields on the page. Default: `true` |
+
+## Escape hatch
+
+| Option | Description |
+| --- | --- |
+| `attributes` | Additional HTML attributes applied to the generated input. On `select`, `attributes.placeholder` is rendered as a disabled placeholder option — see [Input types and editing modes](input-types-and-modes.md#select) |
 
 ## HTML data attributes
 
@@ -62,6 +75,10 @@ Common mappings:
 | `required` | `data-required` |
 | `emptyText` | `data-empty-text` |
 | `showButtons` | `data-show-buttons` |
+| `format` | `data-format` |
+| `displayFormat` | `data-display-format` |
+| `source` | `data-source` — JSON array/object, or an ajax URL string (see [Select](input-types-and-modes.md#select)) |
+| `sourceCache` | `data-source-cache` |
 
 Example:
 
@@ -71,7 +88,7 @@ Example:
 </a>
 ```
 
-Functions and complex JavaScript objects should be configured in JavaScript rather than through HTML attributes.
+Functions and complex JavaScript objects — `requestBuilder`, `render`, `success`/`error`, `popoverOptions`, `ajaxOptions`, `attributes`, a `source` function — should be configured in JavaScript rather than through HTML attributes.
 
 ## Rendering and formatting
 

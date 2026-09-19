@@ -40,6 +40,11 @@ export default class BaseType {
                 `${this.constructor.name} does not support the "source" option — it only applies to type: 'select'. It will be ignored.`,
             );
         }
+        if (this.context.options.sourceCache !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "sourceCache" option — it only applies to type: 'select'. It will be ignored.`,
+            );
+        }
     }
 
     createContainer(element: HTMLInputElement): HTMLDivElement {
@@ -292,6 +297,12 @@ export default class BaseType {
             return false;
         }
     }
+
+    // Called every time the editor is shown (BaseMode.event_show()), right after any stale
+    // save error is cleared. No-op by default; ListType uses it to retry a source that failed
+    // to load — unlike a save error, that failure describes an ongoing problem, not a one-off
+    // attempt worth silently hiding on the next open.
+    onShow(): void {}
 
     initOptions(): void {}
 

@@ -24,15 +24,60 @@ The library provides several built-in input types.
 
 ### Select
 
+`source` accepts several shapes:
+
 ```ts
+// Array of {value, text} — disabled options are supported
 new Editable(element, {
     type: 'select',
     source: [
         { value: 'active', text: 'Active' },
-        { value: 'inactive', text: 'Inactive' },
+        { value: 'inactive', text: 'Inactive', disabled: true },
+    ],
+});
+
+// {value: text} map
+new Editable(element, { type: 'select', source: { active: 'Active', inactive: 'Inactive' } });
+
+// Flat array of strings — value === text
+new Editable(element, { type: 'select', source: ['Active', 'Inactive'] });
+
+// A function — sync or returning a Promise
+new Editable(element, {
+    type: 'select',
+    source: (context) => fetch(`/api/statuses?locale=${context.element.dataset.locale}`).then((r) => r.json()),
+});
+
+// An ajax URL — GET, JSON response in any of the shapes above
+new Editable(element, { type: 'select', source: '/api/statuses' });
+```
+
+`<optgroup>` is rendered from a `children` array:
+
+```ts
+new Editable(element, {
+    type: 'select',
+    source: [
+        { text: 'Active states', children: [{ value: 1, text: 'Draft' }, { value: 2, text: 'Published' }] },
+        { value: 3, text: 'Archived' },
     ],
 });
 ```
+
+An ajax `source` shows the same loading overlay used while saving, and — since the list isn't known yet when the trigger first renders — the trigger shows `emptyText` until the response arrives and the label can be resolved. Responses are cached by URL across fields on the page (`sourceCache`, default `true`); set `sourceCache: false` to always re-fetch.
+
+A `<select>` has no native `placeholder` attribute, so `attributes.placeholder` is rendered instead as a disabled, empty-value option prepended to the list — selected by default whenever no value is set:
+
+```ts
+new Editable(element, {
+    type: 'select',
+    required: true,
+    attributes: { placeholder: '— Select —' },
+    source: [{ value: 'active', text: 'Active' }],
+});
+```
+
+`disabled` only stops the placeholder from being picked again once a real value is chosen — it doesn't by itself block saving an empty value. Pair it with `required` for that: native browser validation then refuses to submit while the placeholder is still selected.
 
 ### Date
 

@@ -1,5 +1,6 @@
 import './editable.css';
 import type Options from './Interfaces/Options.ts';
+import type { SelectSourceData, SelectSourceGroup, SelectSourceItem } from './Interfaces/Options.ts';
 import BaseMode from './Modes/BaseMode.ts';
 import InlineMode from './Modes/InlineMode.ts';
 import PopupMode from './Modes/PopupMode.ts';
@@ -7,13 +8,15 @@ import BaseType from './Types/BaseType.ts';
 import DateTimeType from './Types/DateTimeType.ts';
 import DateType from './Types/DateType.ts';
 import InputType from './Types/InputType.ts';
+import ListType from './Types/ListType.ts';
 import SelectType from './Types/SelectType.ts';
 import TextAreaType from './Types/TextAreaType.ts';
 
-export type { Options };
+export type { Options, SelectSourceData, SelectSourceGroup, SelectSourceItem };
 
 export default class Editable {
     static BaseType = BaseType;
+    static ListType = ListType;
     static BaseMode = BaseMode;
     static InputType = InputType;
     static TextAreaType = TextAreaType;

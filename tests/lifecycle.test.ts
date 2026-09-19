@@ -103,4 +103,33 @@ describe('InlineMode lifecycle', () => {
         // detached-element references. No throw means no leak surfaced synchronously.
         expect(el.querySelector('input')).toBeNull();
     });
+
+    it('shows emptyText (not a collapsed, unclickable trigger) after cancel when the value is empty', async () => {
+        const el = document.createElement('a');
+        document.body.append(el); // no initial textContent — value stays ''
+        new Editable(el, { type: 'text', mode: 'inline' });
+
+        el.click();
+        await sleep(50);
+        el.querySelector<HTMLButtonElement>('.btn-danger')?.click();
+        await sleep(150);
+
+        expect(el.textContent).toBe('Empty');
+        expect(el.classList.contains('editable-element-empty')).toBe(true);
+        expect(el.getBoundingClientRect().width).toBeGreaterThan(0);
+    });
+
+    it('reverts to the previously saved value (not an unsaved edit) after cancel', async () => {
+        const el = mountTrigger(); // textContent = 'x'
+        new Editable(el, { type: 'text', mode: 'inline' });
+
+        el.click();
+        await sleep(50);
+        const input = el.querySelector<HTMLInputElement>('input[type="text"]');
+        if (input) input.value = 'typed but not saved';
+        el.querySelector<HTMLButtonElement>('.btn-danger')?.click();
+        await sleep(150);
+
+        expect(el.textContent).toBe('x');
+    });
 });

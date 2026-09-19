@@ -14,6 +14,7 @@ export default class BaseMode {
 
     event_show() {
         this.context.typeElement.hideError();
+        this.context.typeElement.onShow();
         if (!this.context.typeElement.element) {
             throw new Error(
                 `${this.context.typeElement.constructor.name}.create() did not call createContainer() — the input element was never set.`,

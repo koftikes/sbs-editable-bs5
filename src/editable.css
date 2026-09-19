@@ -20,6 +20,7 @@
 
 .editable-form {
     gap: 20px;
+    position: relative;
 }
 
 .editable-load-overlay {

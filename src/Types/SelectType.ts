@@ -1,70 +1,62 @@
-import BaseType from './BaseType.js';
+import type { SelectSourceData, SelectSourceGroup, SelectSourceItem } from '../Interfaces/Options.ts';
+import ListType from './ListType.js';
 
-export default class SelectType extends BaseType {
-    checkUnsupportedOptions(): void {
-        if (this.context.options.format !== undefined) {
-            console.error(
-                `${this.constructor.name} does not support the "format" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
-            );
-        }
-        if (this.context.options.displayFormat !== undefined) {
-            console.error(
-                `${this.constructor.name} does not support the "displayFormat" option — it only applies to type: 'date'/'datetime'. It will be ignored.`,
-            );
-        }
-    }
-
+export default class SelectType extends ListType {
     create() {
-        const select = this.createElement(`select`);
-        if (this.context.options.source && Array.isArray(this.context.options.source)) {
-            this.context.options.source.forEach((item) => {
-                const opt = document.createElement(`option`);
-                opt.value = String(item.value);
-                opt.textContent = item.text;
-                select.append(opt);
-            });
-        }
-
-        return this.createContainer(select);
+        const select = this.createElement('select');
+        const container = this.createContainer(select);
+        this.loadSource();
+        return container;
     }
 
-    initText() {
-        this.context.element.textContent = this.context.options.emptyText || '';
-        if (
-            this.context.getValue() !== '' &&
-            this.context.options.source &&
-            Array.isArray(this.context.options.source) &&
-            this.context.options.source.length > 0
-        ) {
-            for (let i = 0; i < this.context.options.source.length; i++) {
-                const item = this.context.options.source[i];
-                if (String(item.value) === this.context.getValue()) {
-                    this.context.element.textContent = this.context.options.render
-                        ? this.context.options.render(item.text, this.context)
-                        : item.text;
-                    return false;
-                }
-            }
+    protected renderList(data: SelectSourceData): void {
+        const select = this.element;
+        if (!select) return;
+        select.replaceChildren();
+
+        // `attributes.placeholder` already works natively for input/textarea/date (it's a plain
+        // HTML attribute) — <select> has no native placeholder, so here it renders as a disabled,
+        // empty-valued first option instead. `disabled` only blocks picking it back via the UI —
+        // it does NOT by itself block saving an empty value; pair it with `required` for that
+        // (native constraint validation blocks the submit event before our handler runs).
+        // Selected by default whenever the current value is '', since BaseMode.event_show() sets
+        // `select.value = getValue()` on every open, and this option's value is exactly ''.
+        const placeholder = this.context.options.attributes?.placeholder;
+        if (placeholder !== undefined) {
+            select.append(this.buildPlaceholderOption(String(placeholder)));
         }
-        return true;
+
+        for (const item of data) {
+            select.append(
+                'children' in item
+                    ? this.buildGroup(item as SelectSourceGroup)
+                    : this.buildOption(item as SelectSourceItem),
+            );
+        }
     }
 
-    initOptions() {
-        this.context.get_opt('source', []);
-        if (
-            this.context.options &&
-            typeof this.context.options.source === 'string' &&
-            this.context.options.source !== ''
-        ) {
-            try {
-                this.context.options.source = JSON.parse(this.context.options.source);
-            } catch (e) {
-                const el = this.context.element;
-                const identifier = el.id ? `#${el.id}` : `<${el.tagName.toLowerCase()}>`;
-                throw new Error(
-                    `Invalid JSON in "source" option/data-source attribute on ${identifier}: ${(e as Error).message}`,
-                );
-            }
+    private buildPlaceholderOption(text: string): HTMLOptionElement {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = text;
+        option.disabled = true;
+        return option;
+    }
+
+    private buildGroup(group: SelectSourceGroup): HTMLOptGroupElement {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = group.text;
+        for (const child of group.children) {
+            optgroup.append(this.buildOption(child));
         }
+        return optgroup;
+    }
+
+    private buildOption(item: SelectSourceItem): HTMLOptionElement {
+        const option = document.createElement('option');
+        option.value = String(item.value);
+        option.textContent = item.text;
+        option.disabled = Boolean(item.disabled);
+        return option;
     }
 }

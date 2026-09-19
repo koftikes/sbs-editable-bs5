@@ -48,6 +48,16 @@ describe('checkUnsupportedOptions — console diagnostics for the wrong type', (
         );
     });
 
+    it('warns when sourceCache is passed to a non-select type', () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        new Editable(mountTrigger(), { type: 'text', sourceCache: false });
+
+        expect(spy).toHaveBeenCalledWith(
+            expect.stringContaining('InputType does not support the "sourceCache" option'),
+        );
+    });
+
     it('stays silent for a correct type/option combination', () => {
         const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

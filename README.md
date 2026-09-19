@@ -1,4 +1,4 @@
-# sbs-editable-bs5
+# @sbsweb/editable-bs5
 
 In-place ("click to edit") editing for HTML elements, built for **Bootstrap 5**. Written in plain TypeScript — no jQuery, no moment.js. Conceptually inspired by [x-editable](https://github.com/vitalets/x-editable), but not a drop-in replacement: option names and defaults differ (see [Options](#options)).
 
@@ -11,7 +11,7 @@ Date formatting ([day.js](https://day.js.org/)) is bundled internally — you do
 ## Installation
 
 ```bash
-npm i sbs-editable-bs5
+npm i @sbsweb/editable-bs5
 ```
 
 Or include the pre-built files directly:
@@ -24,7 +24,7 @@ Or include the pre-built files directly:
 
 | Build | When to use |
 |---|---|
-| `dist/editable.js` | ESM, for bundlers (`import Editable from 'sbs-editable-bs5'`) |
+| `dist/editable.js` | ESM, for bundlers (`import Editable from '@sbsweb/editable-bs5'`) |
 | `dist/editable.iife.js` | Plain `<script>` tag, exposes a global `Editable` |
 | `dist/editable.umd.cjs` | CommonJS (`require`) |
 
@@ -243,7 +243,7 @@ Object/function-valued options (`ajaxOptions`, `attributes`, `popoverOptions`, `
 Custom input types and modes are registered on `Editable` and referenced by name via the `type`/`mode` options — no need to fork the library to add one:
 
 ```js
-import Editable from 'sbs-editable-bs5';
+import Editable from '@sbsweb/editable-bs5';
 
 class RatingType extends Editable.BaseType {
     create() {

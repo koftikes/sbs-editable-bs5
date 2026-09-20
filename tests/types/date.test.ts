@@ -37,6 +37,30 @@ describe('DateType', () => {
 
         expect(el.textContent).toBe('18.09.2026');
     });
+
+    it('round-trips a value read back via getValue() when format differs from displayFormat', () => {
+        // getValue() returns the internally-stored value, which is in `format`'s shape — not
+        // displayFormat's. Destroying an instance and reconstructing another one from that
+        // value (e.g. after a mode switch) must not corrupt it.
+        const el = mountTrigger();
+        const first = new Editable(el, {
+            type: 'date',
+            value: '18.09.2026',
+            format: 'YYYY-MM-DD',
+            displayFormat: 'DD.MM.YYYY',
+        });
+        const stored = first.getValue();
+        first.destroy();
+
+        new Editable(el, {
+            type: 'date',
+            value: stored,
+            format: 'YYYY-MM-DD',
+            displayFormat: 'DD.MM.YYYY',
+        });
+
+        expect(el.textContent).toBe('18.09.2026');
+    });
 });
 
 describe('DateTimeType', () => {

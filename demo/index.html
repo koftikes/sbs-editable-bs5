@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Demo @sbsweb/editable-bs5</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            font-family: system-ui, sans-serif;
+        }
+
+        h2 {
+            margin-top: 2.5rem;
+        }
+
+        table.demo-table {
+            font-size: 0.9rem;
+        }
+
+        table.demo-table th:nth-child(1) {
+            width: 28%;
+        }
+
+        table.demo-table th:nth-child(2) {
+            width: 22%;
+        }
+
+        table.demo-table td pre {
+            margin: 0;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        #console {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+<h1>Demo @sbsweb/editable-bs5</h1>
+<p>Click any underlined value to edit it. No backend is running - everything except the "Networking" section works
+    purely locally.</p>
+<p><strong>Keyboard:</strong> Tab to a value, Enter/Space to open it, Esc to cancel and return focus to the trigger.</p>
+
+<div class="border rounded p-3 mb-4 bg-light">
+    <h2 class="h5 mt-0">Settings</h2>
+    <div class="d-flex flex-wrap align-items-center gap-4">
+        <div>
+            <span class="fw-semibold me-2">Mode:</span>
+            <!-- biome-ignore lint/a11y/useSemanticElements: Bootstrap's documented btn-group toolbar pattern -->
+            <div class="btn-group" role="group" aria-label="Global mode">
+                <input type="radio" class="btn-check" name="global-mode" id="mode-popup" value="popup" checked>
+                <label class="btn btn-outline-primary btn-sm" for="mode-popup">Popup</label>
+                <input type="radio" class="btn-check" name="global-mode" id="mode-inline" value="inline">
+                <label class="btn btn-outline-primary btn-sm" for="mode-inline">Inline</label>
+            </div>
+        </div>
+        <button id="refresh-btn" type="button" class="btn btn-sm btn-outline-secondary">Refresh</button>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="disable-all">
+            <label class="form-check-label" for="disable-all">Disable all</label>
+        </div>
+    </div>
+    <p class="text-muted small mb-0 mt-2">
+        <strong>Mode</strong> and <strong>Disable all</strong> apply live to every example on this page.
+        <strong>Refresh</strong> just reloads the page (same as F5) - undoes edits, closes open editors, and resets
+        rows left in an error or destroyed state.
+    </p>
+</div>
+
+<h2>Text</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Popup, with title</td>
+        <td>
+            <span id="text-popup" data-type="text" data-title="Enter text">Hello world</span>
+        </td>
+        <td>
+            <pre>&lt;span data-type="text" data-title="Enter text"&gt;Hello world&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Email (html5 input type)</td>
+        <td>
+            <span id="email" data-type="email" data-title="Enter email" data-value="user@example.com"></span>
+        </td>
+        <td>
+            <pre>&lt;span data-type="email" data-title="Enter email" data-value="user@example.com"&gt;&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>AutoSubmit, no buttons, required</td>
+        <td>
+            <span id="auto-submit" data-type="text" data-show-buttons="false" data-required="true">Change Me</span>
+        </td>
+        <td>
+            <pre>&lt;span data-type="text" data-show-buttons="false" data-required="true"&gt;Change Me&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>attributes.disabled (Popup opens, input is disabled)</td>
+        <td>
+            <span id="attr-disabled" data-type="text" data-title="Popup opens, input is disabled">try clicking me</span>
+        </td>
+        <td><pre>
+new Editable(el, {
+    type: 'text',
+    attributes: { disabled: true },
+});
+        </pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Empty Value</td>
+        <td>
+            <span id="empty" data-type="text" data-title="Fill me in"></span>
+        </td>
+        <td>
+            <pre>&lt;span data-type="text" data-title="Fill me in"&gt;&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Textarea</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Multiline input</td>
+        <td><span id="textarea" data-type="textarea" data-title="Enter Description">Some longer text goes here.</span>
+        </td>
+        <td><pre>&lt;span data-type="textarea" data-title="Enter Description"&gt;Some longer text goes here.&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Number</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Custom HTML5 attributes + render()</td>
+        <td><span id="number">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'number',
+  title: 'Enter number',
+  value: '30000.00',
+  render: (value) => {
+    const [i, d] = parseFloat(value).toFixed(2).split('.');
+    return `${i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}.${d}`;
+  },
+  attributes: {
+    placeholder: 'Enter number',
+    min: 0.1, max: 5000000, step: 0.1,
+    required: true,
+  },
+});</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Date &amp; Datetime</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Date</td>
+        <td><span id="date" data-type="date" data-title="Pick a Date" data-value="2026-09-18"></span></td>
+        <td><pre>&lt;span data-type="date" data-title="Pick a Date" data-value="2026-09-18"&gt;&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Datetime</td>
+        <td><span id="datetime" data-type="datetime" data-title="Pick date &amp; time" data-value="2026-09-18T14:30"></span></td>
+        <td><pre>&lt;span data-type="datetime" data-title="Pick date &amp; time" data-value="2026-09-18T14:30"&gt;&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Custom format / displayFormat</td>
+        <td><span id="date-format">&nbsp;</span></td>
+        <td><pre>new Editable(el, {
+  type: 'date',
+  title: 'Pick a date',
+  value: '18.09.2026',
+  displayFormat: 'DD.MM.YYYY',
+});</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Select</h2>
+<p>The three below with a Promise/URL are worth watching closely: the trigger shows "Empty" until the source resolves
+    (even with a preset value), and opening the editor while it's still pending shows the same loading spinner used
+    while saving.</p>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Source: array of strings (value === text)</td>
+        <td><span id="select-strings" data-type="select" data-title="Array of Strings" data-source='["Enable","Disable"]'></span></td>
+        <td>
+            <pre>&lt;span data-type="select" data-title="Array of Strings" data-source='["Enable","Disable"]'&gt;&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: array of {value, text}</td>
+        <td><span id="select">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Choose status',
+  value: '2',
+  source: [
+    { value: '1', text: 'Draft' },
+    { value: '2', text: 'Published' },
+    { value: '3', text: 'Archived' },
+  ],
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: {value: text} object map</td>
+        <td><span id="select-map">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Pick one',
+  value: '2',
+  source: { 1: 'Draft', 2: 'Published', 3: 'Archived' },
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: &lt;optgroup&gt; (children) + disabled option</td>
+        <td><span id="select-groups">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Pick a status',
+  value: '2',
+  source: [
+    { text: 'Active states', children: [
+      { value: '1', text: 'Draft' },
+      { value: '2', text: 'Published' },
+    ] },
+    { value: '3', text: 'Archived', disabled: true },
+  ],
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: synchronous function</td>
+        <td><span id="select-fn-sync">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Pick one',
+  value: '2',
+  source: () => [
+    { value: '1', text: 'Draft' },
+    { value: '2', text: 'Published' },
+  ],
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: function returning a Promise (1.5s delay)</td>
+        <td><span id="select-fn-async">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Loads after 1.5s',
+  value: '2',
+  source: () => new Promise((resolve) =>
+    setTimeout(() => resolve([
+      { value: '1', text: 'Draft' },
+      { value: '2', text: 'Published' },
+    ]), 1500)),
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Source: Promise rejects (1s delay, error state)</td>
+        <td><span id="select-fn-error">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Fails after 1s',
+  source: () => new Promise((_resolve, reject) =>
+    setTimeout(() => reject(new Error('Failed to load options')), 1000)),
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>SourceCache - same ajax URL ×2, only one request fires (see Network tab)</td>
+        <td><span id="select-ajax-a">&nbsp;</span> / <span id="select-ajax-b">&nbsp;</span></td>
+        <td><pre>
+['select-ajax-a', 'select-ajax-b'].forEach((id) => {
+  new Editable(document.getElementById(id), {
+    type: 'select',
+    title: 'Shared source',
+    source: '/api/select-options',
+  });
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>attributes.placeholder + required (try Save with nothing picked)</td>
+        <td><span id="select-placeholder">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'select',
+  title: 'Pick a status',
+  required: true,
+  attributes: { placeholder: '- Select -' },
+  source: [
+    { value: '1', text: 'Draft' },
+    { value: '2', text: 'Published' },
+  ],
+});</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Autocomplete</h2>
+<p>Type 2+ characters to filter.</p>
+<ul>
+    <li><strong>Arrow Down/Up</strong> highlights a suggestion without leaving the input (keep typing to refine)</li>
+    <li><strong>Enter</strong> picks the highlighted one</li>
+    <li><strong>Esc</strong> closes just the suggestion list first, a second Esc closes the editor</li>
+</ul>
+<p>
+    <pre>
+const USERS = [
+    { value: '42', text: 'Alice Johnson' },
+    { value: '17', text: 'Bob Smith' },
+    { value: '9', text: 'Bobby Fischer' },
+];
+</pre>
+</p>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Strict (default) - try typing something that matches nothing, then Save</td>
+        <td><span id="ac-strict">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'autocomplete',
+  title: 'Assign to user',
+  value: '42',
+  source: USERS,
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>Strict - type the exact label by hand, don't click it, then Save (still works)</td>
+        <td><span id="ac-exact">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'autocomplete',
+  title: 'Type "Bob Smith" by hand, then Save',
+  value: '42',
+  source: USERS,
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>allowCustomValue: true - anything typed is accepted</td>
+        <td><span id="ac-custom">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'autocomplete',
+  title: 'City',
+  value: 'Berlin',
+  allowCustomValue: true,
+  source: ['Berlin', 'Bern', 'Belgrade', 'Bern (Switzerland)'],
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>source as a Promise (1.5s delay) - same loading overlay as select</td>
+        <td><span id="ac-async">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'autocomplete',
+  title: 'Loads after 1.5s',
+  value: '17',
+  source: () => new Promise((resolve) =>
+    setTimeout(() => resolve(USERS), 1500)),
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>threshold / maxItems tuned explicitly</td>
+        <td><span id="ac-tuned">&nbsp;</span></td>
+        <td><pre>
+new Editable(el, {
+  type: 'autocomplete',
+  value: '9',
+  source: USERS,
+  threshold: 1,
+  maxItems: 3,
+});</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Custom type</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Registered via Editable.registerType / Editable.BaseType</td>
+        <td><span id="custom">&nbsp;</span></td>
+        <td><pre>
+class RatingType extends Editable.BaseType {
+  create() {
+    const select = this.createElement('select');
+    [1, 2, 3, 4, 5].forEach((n) => {
+      const opt = document.createElement('option');
+      opt.value = String(n);
+      opt.textContent = '★'.repeat(n);
+      select.append(opt);
+    });
+    return this.createContainer(select);
+  }
+}
+Editable.registerType('rating', RatingType);
+
+new Editable(el, { type: 'rating', title: 'Pick a rating', value: '3' });</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Networking</h2>
+<p>All requests below actually fire - open DevTools → Network, or watch the Console below. Everything fails with no
+    backend running.</p>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>URL - plain string</td>
+        <td><span id="ajax-demo" data-type="text" data-title="Send to /api/demo" data-url="/api/demo">Submitting Me</span>
+        </td>
+        <td><pre>&lt;span data-type="text" data-title="Send to /api/demo" data-url="/api/demo"&gt;Submitting Me&lt;/span&gt;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>URL as a function - resolved per-submit from ctx.element and the new value</td>
+        <td><span id="ajax-fn-demo" data-record-id="42">try submitting me</span></td>
+        <td><pre>
+new Editable(el, {
+  url: (ctx, newValue) =>
+    `/api/records/${ctx.element.dataset.recordId}?value=${encodeURIComponent(newValue)}`,
+});</pre>
+        </td>
+    </tr>
+    <tr>
+        <td>requestBuilder - full control over the request (JSON body instead of FormData)</td>
+        <td><span id="ajax-rb-demo">try submitting me</span></td>
+        <td><pre>
+new Editable(el, {
+  url: '/api/rb-demo',
+  requestBuilder: (ctx, newValue, url) => ({
+    url,
+    init: {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: newValue }),
+    },
+  }),
+});</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Lifecycle</h2>
+<table class="table align-middle demo-table">
+    <thead>
+    <tr>
+        <th>Setting</th>
+        <th>Example</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>destroy() - after clicking Destroy, clicking the element does nothing (until Refresh)</td>
+        <td>
+            <span id="destroy-me">click me, then hit Destroy</span>
+            <button id="destroy-btn" type="button" class="btn btn-sm btn-outline-secondary ms-2">Destroy</button>
+        </td>
+        <td><pre>
+const instance = new Editable(el);
+destroyBtn.addEventListener('click', () => instance.destroy());</pre>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Console
+    <small class="text-muted">(all requests below are real fetch() calls; init/show/shown/hide/hidden/save events also land here)</small>
+</h2>
+<textarea id="console" class="form-control" rows="10" readonly spellcheck="false"></textarea>
+
+<script type="module" src="./script.js"></script>
+</body>
+</html>

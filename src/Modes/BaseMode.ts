@@ -20,7 +20,7 @@ export default class BaseMode {
                 `${this.context.typeElement.constructor.name}.create() did not call createContainer() — the input element was never set.`,
             );
         }
-        this.context.typeElement.element.value = this.context.getValue();
+        this.context.typeElement.applyValueToElement();
         this.context.element.dispatchEvent(new CustomEvent('show', { detail: { Editable: this.context } }));
     }
 

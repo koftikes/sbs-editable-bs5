@@ -8,6 +8,7 @@ import { flattenSourceData, resolveSource } from './ListSource.js';
 export default abstract class ListType extends BaseType {
     sourceData: SelectSourceData = [];
     private loadFailed = false;
+    private pending: Promise<SelectSourceData> | null = null;
 
     checkUnsupportedOptions(): void {
         if (this.context.options.format !== undefined) {
@@ -22,47 +23,71 @@ export default abstract class ListType extends BaseType {
         }
     }
 
-    // Subclasses render their concrete control (a <select>'s <option>s, a checkbox group, ...).
-    // Called once synchronously if the source resolves without I/O, once more when an
-    // ajax/async source resolves.
+    // Subclasses render their concrete control (a <select>'s <option>s, a checkbox group, ...)
+    // from the currently-known source data.
     protected abstract renderList(data: SelectSourceData): void;
 
+    // Reflects whatever is currently known about the source into the just-built control. Safe
+    // whenever create() runs — eagerly at construction (popup) or lazily on first open (inline)
+    // — since resolve() (see initOptions()) already started resolving independently of either,
+    // so by the time create() runs the answer may already be in, still pending, or (on a later
+    // inline open) previously failed.
     protected loadSource(): void {
+        if (this.pending) {
+            this.showLoad();
+            return;
+        }
+        if (this.loadFailed) {
+            // onShow() runs immediately after this (event_show(), for both modes) and retries —
+            // nothing to render here.
+            return;
+        }
+        this.renderList(this.sourceData);
+    }
+
+    // Starts (or retries) resolving `source`, independently of whether a control has been built
+    // yet — this is what makes the closed trigger's label correct even in inline mode, where
+    // create() doesn't run until the first open. DOM updates (render/loader/error) only happen
+    // here if a control already exists; otherwise this just updates sourceData/loadFailed and
+    // refreshes the closed label via context.init_text().
+    private resolve(): void {
         const resolved = resolveSource(this.context);
         if (!(resolved instanceof Promise)) {
             this.sourceData = resolved;
             this.loadFailed = false;
-            this.renderList(resolved);
             return;
         }
-        this.showLoad();
+
+        this.pending = resolved;
+        if (this.element) this.showLoad();
+
         resolved
             .then((data) => {
+                if (this.pending !== resolved) return; // superseded by a later resolve()
+                this.pending = null;
                 this.sourceData = data;
                 this.loadFailed = false;
-                this.renderList(data);
-                // BaseMode.event_show() already set the control's value once, before this
-                // resolved — against an empty control with nothing to match yet. Re-apply it
-                // now that renderList() gave it something to match against.
                 if (this.element) {
-                    this.element.value = this.context.getValue();
+                    this.renderList(data);
+                    this.applyValueToElement();
+                    this.hideLoad();
                 }
-                this.hideLoad();
-                // A value set before the source finished loading couldn't be matched yet —
-                // re-render the (closed) trigger's label now that it can be. Skip this while
-                // showing as an open inline editor: there, the trigger element IS the editor's
-                // container (InlineMode inserts it via replaceChildren), so writing to its
-                // textContent here would blow away the <select> we just built.
-                if (!this.context.element.contains(this.element)) {
+                // Refresh the closed trigger's label — unless that would blow away an open
+                // inline editor (there, context.element IS the editor's own container).
+                if (!this.element || !this.context.element.contains(this.element)) {
                     this.context.init_text();
                 }
             })
             .catch((error) => {
+                if (this.pending !== resolved) return;
+                this.pending = null;
                 console.error(error);
                 this.loadFailed = true;
-                this.hideLoad();
-                this.showError();
-                this.setError(error instanceof Error ? error.message : String(error));
+                if (this.element) {
+                    this.hideLoad();
+                    this.showError();
+                    this.setError(error instanceof Error ? error.message : String(error));
+                }
             });
     }
 
@@ -72,7 +97,7 @@ export default abstract class ListType extends BaseType {
     onShow(): void {
         if (this.loadFailed) {
             this.loadFailed = false;
-            this.loadSource();
+            this.resolve();
         }
     }
 
@@ -115,5 +140,11 @@ export default abstract class ListType extends BaseType {
                 }
             }
         }
+
+        // Resolve as early as possible — independent of create()/mode — so the closed trigger's
+        // label is correct immediately for a synchronous source, and updates itself once an
+        // async source resolves even if the editor is never opened (inline defers create() until
+        // first open; this doesn't).
+        this.resolve();
     }
 }

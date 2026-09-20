@@ -48,13 +48,31 @@ describe('checkUnsupportedOptions — console diagnostics for the wrong type', (
         );
     });
 
-    it('warns when sourceCache is passed to a non-select type', () => {
+    it('warns when sourceCache is passed to a non-select/autocomplete type', () => {
         const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         new Editable(mountTrigger(), { type: 'text', sourceCache: false });
 
         expect(spy).toHaveBeenCalledWith(
             expect.stringContaining('InputType does not support the "sourceCache" option'),
+        );
+    });
+
+    it('warns when threshold/maxItems/allowCustomValue are passed to a non-autocomplete type', () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        new Editable(mountTrigger(), {
+            type: 'select',
+            source: [{ value: '1', text: 'a' }],
+            threshold: 3,
+            maxItems: 10,
+            allowCustomValue: true,
+        });
+
+        expect(spy).toHaveBeenCalledWith(expect.stringContaining('SelectType does not support the "threshold" option'));
+        expect(spy).toHaveBeenCalledWith(expect.stringContaining('SelectType does not support the "maxItems" option'));
+        expect(spy).toHaveBeenCalledWith(
+            expect.stringContaining('SelectType does not support the "allowCustomValue" option'),
         );
     });
 

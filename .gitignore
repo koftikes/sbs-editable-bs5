@@ -7,10 +7,6 @@
 node_modules
 dist
 
-# Local demo page for `npm run dev` (vite dev server), kept out of git
-index.html
-script.js
-
 # Logs
 *.log
 

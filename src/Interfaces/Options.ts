@@ -54,9 +54,17 @@ export default interface Options {
     format?: string;
     displayFormat?: string;
 
-    // type: 'select' only
+    // type: 'select' / 'autocomplete' only
     source?: SelectSourceValue;
     sourceCache?: boolean;
+
+    // type: 'autocomplete' only
+    /** Minimum characters typed before suggestions appear. Default: 2. */
+    threshold?: number;
+    /** Max suggestions shown. Only takes effect when > 0 — unset or 0 means unlimited. */
+    maxItems?: number;
+    /** Accept typed text that matches nothing in `source`. Default: false (must match an entry). */
+    allowCustomValue?: boolean;
 
     // Escape hatch — raw HTML attributes applied to the generated input
     attributes?: { [key: string]: string | number | boolean | undefined };

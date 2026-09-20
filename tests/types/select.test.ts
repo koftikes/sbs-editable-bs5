@@ -498,3 +498,83 @@ describe('SelectType — inline mode, loading overlay covers the control', () =>
         await sleep(30);
     });
 });
+
+describe('SelectType — inline mode, closed label independent of create()', () => {
+    it('shows the correct label immediately for a synchronous source (create() has not run yet)', () => {
+        const el = mountTrigger();
+        new Editable(el, {
+            type: 'select',
+            mode: 'inline',
+            value: '2',
+            source: [
+                { value: '1', text: 'Draft' },
+                { value: '2', text: 'Published' },
+            ],
+        });
+
+        expect(el.textContent).toBe('Published');
+    });
+
+    it('updates the closed label once an async source resolves, even if never opened', async () => {
+        const el = mountTrigger();
+        let resolveIt!: (data: Array<{ value: string; text: string }>) => void;
+        new Editable(el, {
+            type: 'select',
+            mode: 'inline',
+            value: '2',
+            source: () =>
+                new Promise<Array<{ value: string; text: string }>>((resolve) => {
+                    resolveIt = resolve;
+                }),
+        });
+
+        expect(el.textContent).toBe('Empty'); // not resolved yet, editor never opened
+
+        resolveIt([
+            { value: '1', text: 'Draft' },
+            { value: '2', text: 'Published' },
+        ]);
+        await sleep(30);
+
+        expect(el.textContent).toBe('Published');
+    });
+
+    it('shows the loading overlay when opened while the source is still pending', async () => {
+        const el = mountTrigger();
+        new Editable(el, {
+            type: 'select',
+            mode: 'inline',
+            source: () => new Promise(() => {}), // never resolves — only the pending state matters here
+        });
+
+        el.click();
+        await sleep(50);
+
+        expect(el.querySelector('.editable-load-overlay')?.hasAttribute('hidden')).toBe(false);
+    });
+
+    it('re-syncs the select value once an async source resolves while already open', async () => {
+        const el = mountTrigger();
+        let resolveIt!: (data: Array<{ value: string; text: string }>) => void;
+        new Editable(el, {
+            type: 'select',
+            mode: 'inline',
+            value: '2',
+            source: () =>
+                new Promise<Array<{ value: string; text: string }>>((resolve) => {
+                    resolveIt = resolve;
+                }),
+        });
+
+        el.click();
+        await sleep(50);
+
+        resolveIt([
+            { value: '1', text: 'Draft' },
+            { value: '2', text: 'Published' },
+        ]);
+        await sleep(30);
+
+        expect(el.querySelector<HTMLSelectElement>('select')?.value).toBe('2');
+    });
+});

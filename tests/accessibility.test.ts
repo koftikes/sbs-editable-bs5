@@ -61,6 +61,52 @@ describe('Escape cancels an open edit', () => {
     });
 });
 
+describe('the generated control gets an accessible name from title', () => {
+    it('popup: sets aria-label on the input from options.title', async () => {
+        const el = mountTrigger();
+        new Editable(el, { type: 'text', title: 'Edit username' });
+
+        el.click();
+        await sleep(50);
+
+        expect(document.querySelector('.popover input[type="text"]')?.getAttribute('aria-label')).toBe('Edit username');
+    });
+
+    it('inline: sets aria-label too, even though there is no visible title anywhere', async () => {
+        const el = mountTrigger();
+        new Editable(el, { type: 'text', mode: 'inline', title: 'Edit username' });
+
+        el.click();
+        await sleep(50);
+
+        expect(el.querySelector('input')?.getAttribute('aria-label')).toBe('Edit username');
+    });
+
+    it('does not set aria-label when title is empty', async () => {
+        const el = mountTrigger();
+        new Editable(el, { type: 'text' });
+
+        el.click();
+        await sleep(50);
+
+        expect(document.querySelector('.popover input[type="text"]')?.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('an explicit attributes["aria-label"] overrides the one derived from title', async () => {
+        const el = mountTrigger();
+        new Editable(el, {
+            type: 'text',
+            title: 'Edit username',
+            attributes: { 'aria-label': 'Custom label' },
+        });
+
+        el.click();
+        await sleep(50);
+
+        expect(document.querySelector('.popover input[type="text"]')?.getAttribute('aria-label')).toBe('Custom label');
+    });
+});
+
 describe('the error region announces to assistive technology', () => {
     it('carries role="alert"', async () => {
         const el = mountTrigger();

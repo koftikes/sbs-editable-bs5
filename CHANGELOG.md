@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-20
+
 ### Added
 
 - `type: 'autocomplete'` — a text input with filtered suggestions. `source` accepts the same shapes as `type: 'select'` (array, `{value: text}` map, sync/async function, ajax URL), plus `threshold` (minimum characters typed before suggestions appear, default `2`), `maxItems` (cap on suggestions shown; unset or `0` means unlimited), and `allowCustomValue` (accept typed text that matches nothing in `source`, default `false`). Strict by default: the typed text must resolve to a `source` entry, either by selecting it or by typing the exact label out by hand. Keyboard: Arrow Up/Down highlights a suggestion without moving focus off the input, Enter picks it, Escape closes the suggestion list first and a second Escape closes the editor. Follows the ARIA combobox pattern (`role="combobox"`/`"listbox"`/`"option"`, `aria-expanded`, `aria-activedescendant`). Documented in `doc/input-types-and-modes.md`.
@@ -101,7 +103,8 @@ Initial release, published as `@sbsweb/editable-bs5`.
   read).
 - Generated `dist/` build output from version control.
 
-[Unreleased]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.0.0...v1.0.1

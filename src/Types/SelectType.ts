@@ -2,6 +2,25 @@ import type { SelectSourceData, SelectSourceGroup, SelectSourceItem } from '../I
 import ListType from './ListType.js';
 
 export default class SelectType extends ListType {
+    checkUnsupportedOptions(): void {
+        super.checkUnsupportedOptions();
+        if (this.context.options.threshold !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "threshold" option — it only applies to type: 'autocomplete'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.maxItems !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "maxItems" option — it only applies to type: 'autocomplete'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.allowCustomValue !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "allowCustomValue" option — it only applies to type: 'autocomplete'. It will be ignored.`,
+            );
+        }
+    }
+
     create() {
         const select = this.createElement('select');
         const container = this.createContainer(select);

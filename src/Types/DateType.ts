@@ -38,6 +38,17 @@ export default class DateType extends BaseType {
         const default_format = 'YYYY-MM-DD';
         const format = this.context.get_opt('format', default_format) as string;
         const displayFormat = this.context.get_opt('displayFormat', default_format) as string;
-        this.context.setValue(dayjs(this.context.getValue(), displayFormat).format(format));
+        this.context.setValue(this.parseIncomingValue(format, displayFormat).format(format));
+    }
+
+    // `value` is normally given in displayFormat's shape (see initOptions), but a value read
+    // back via getValue() from a live instance — e.g. destroy() + reconstruct — comes back
+    // already in `format`'s shape instead, since that's what's stored internally. Try a strict
+    // parse against `format` first so both round-trip cleanly; only fall back to displayFormat
+    // (non-strict, since it's user-authored input) when that fails.
+    protected parseIncomingValue(format: string, displayFormat: string): dayjs.Dayjs {
+        const rawValue = this.context.getValue();
+        const strict = dayjs(rawValue, format, true);
+        return strict.isValid() ? strict : dayjs(rawValue, displayFormat);
     }
 }

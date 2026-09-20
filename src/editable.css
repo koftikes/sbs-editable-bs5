@@ -23,6 +23,12 @@
     position: relative;
 }
 
+.editable-form .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+}
+
 .editable-load-overlay {
     position: absolute;
     inset: 0;

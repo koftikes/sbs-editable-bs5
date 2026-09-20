@@ -79,6 +79,43 @@ new Editable(element, {
 
 `disabled` only stops the placeholder from being picked again once a real value is chosen — it doesn't by itself block saving an empty value. Pair it with `required` for that: native browser validation then refuses to submit while the placeholder is still selected.
 
+### Autocomplete
+
+A text input with filtered suggestions, shown after typing `threshold` characters (default: `2`). `source` accepts the same shapes as [Select](#select) — array, `{value: text}` map, a sync/async function, or an ajax URL — including the same `sourceCache` behavior and loading overlay.
+
+```ts
+new Editable(element, {
+    type: 'autocomplete',
+    source: [
+        { value: '42', text: 'Alice Johnson' },
+        { value: '17', text: 'Bob Smith' },
+    ],
+});
+```
+
+By default, the typed text must resolve to an entry in `source` — either by clicking/arrowing to a suggestion, or by typing a label out by hand exactly (case-insensitive). Anything else silently reverts on save, without sending a request. Set `allowCustomValue: true` to accept any typed text instead:
+
+```ts
+new Editable(element, {
+    type: 'autocomplete',
+    allowCustomValue: true,
+    source: ['Berlin', 'Bern', 'Belgrade'],
+});
+```
+
+`maxItems` caps how many suggestions are shown at once; unset or `0` means unlimited:
+
+```ts
+new Editable(element, {
+    type: 'autocomplete',
+    threshold: 1,
+    maxItems: 5,
+    source: ['Berlin', 'Bern', 'Belgrade'],
+});
+```
+
+**Keyboard:** Arrow Down/Up highlights a suggestion without moving focus off the input; Enter picks the highlighted one; Escape closes just the suggestion list first, a second Escape closes the editor. The input and its suggestion list follow the ARIA combobox pattern (`role="combobox"`/`"listbox"`/`"option"`, `aria-expanded`, `aria-activedescendant`).
+
 ### Date
 
 ```ts

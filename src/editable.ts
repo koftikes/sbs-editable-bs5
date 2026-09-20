@@ -4,6 +4,7 @@ import type { SelectSourceData, SelectSourceGroup, SelectSourceItem } from './In
 import BaseMode from './Modes/BaseMode.ts';
 import InlineMode from './Modes/InlineMode.ts';
 import PopupMode from './Modes/PopupMode.ts';
+import AutocompleteType from './Types/AutocompleteType.ts';
 import BaseType from './Types/BaseType.ts';
 import DateTimeType from './Types/DateTimeType.ts';
 import DateType from './Types/DateType.ts';
@@ -21,6 +22,7 @@ export default class Editable {
     static InputType = InputType;
     static TextAreaType = TextAreaType;
     static SelectType = SelectType;
+    static AutocompleteType = AutocompleteType;
     static DateType = DateType;
     static DateTimeType = DateTimeType;
     static PopupMode = PopupMode;
@@ -37,6 +39,7 @@ export default class Editable {
         ['time', InputType],
         ['textarea', TextAreaType],
         ['select', SelectType],
+        ['autocomplete', AutocompleteType],
         ['date', DateType],
         ['datetime', DateTimeType],
     ]);

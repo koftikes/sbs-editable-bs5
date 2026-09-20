@@ -37,12 +37,27 @@ export default class BaseType {
         }
         if (this.context.options.source !== undefined) {
             console.error(
-                `${this.constructor.name} does not support the "source" option — it only applies to type: 'select'. It will be ignored.`,
+                `${this.constructor.name} does not support the "source" option — it only applies to type: 'select'/'autocomplete'. It will be ignored.`,
             );
         }
         if (this.context.options.sourceCache !== undefined) {
             console.error(
-                `${this.constructor.name} does not support the "sourceCache" option — it only applies to type: 'select'. It will be ignored.`,
+                `${this.constructor.name} does not support the "sourceCache" option — it only applies to type: 'select'/'autocomplete'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.threshold !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "threshold" option — it only applies to type: 'autocomplete'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.maxItems !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "maxItems" option — it only applies to type: 'autocomplete'. It will be ignored.`,
+            );
+        }
+        if (this.context.options.allowCustomValue !== undefined) {
+            console.error(
+                `${this.constructor.name} does not support the "allowCustomValue" option — it only applies to type: 'autocomplete'. It will be ignored.`,
             );
         }
     }
@@ -240,6 +255,9 @@ export default class BaseType {
         if (this.context.options.required) {
             element.required = this.context.options.required;
         }
+        if (this.context.options.title) {
+            element.setAttribute('aria-label', this.context.options.title);
+        }
         this.applyAttributes(element);
         if (!this.context.options.showButtons) {
             element.addEventListener('change', () => {
@@ -267,6 +285,7 @@ export default class BaseType {
             'disabled',
             'autocomplete',
             'autofocus',
+            'aria-label',
         ];
         for (const [key, value] of Object.entries(attrs)) {
             if (allowedAttributes.includes(key) && value !== undefined) {
@@ -303,6 +322,15 @@ export default class BaseType {
     // to load — unlike a save error, that failure describes an ongoing problem, not a one-off
     // attempt worth silently hiding on the next open.
     onShow(): void {}
+
+    // Projects context.getValue() onto the visible control. Default: same representation, just
+    // assign .value. AutocompleteType overrides this because its visible control shows a label,
+    // not the stored value.
+    applyValueToElement(): void {
+        if (this.element) {
+            this.element.value = this.context.getValue();
+        }
+    }
 
     initOptions(): void {}
 

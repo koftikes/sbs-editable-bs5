@@ -15,11 +15,10 @@ Use the bundle build rather than `bootstrap.min.js` when Popper is required.
 Check:
 
 1. `url` is configured;
-2. `send` is enabled;
-3. the endpoint is correct;
-4. the `name` option contains the expected field name;
-5. the browser Network panel shows the request;
-6. the server accepts the HTTP method and request body.
+2. the endpoint is correct;
+3. the `name` option contains the expected field name;
+4. the browser Network panel shows the request;
+5. the server accepts the HTTP method and request body.
 
 ## `data-*` configuration is ignored
 
@@ -36,6 +35,16 @@ emptyText: 'No value'
 ```
 
 Functions and objects should be configured from JavaScript.
+
+## A `select`/`autocomplete` opens with nothing selected, even with a placeholder option
+
+This happens when the trigger element's markup uses `&nbsp;` (or other whitespace) as filler text before initialization, e.g.:
+
+```html
+<span id="status">&nbsp;</span>
+```
+
+A whitespace-only or `&nbsp;`-only trigger is treated as an empty initial `value`, so it matches a placeholder option's `value=""` — this only applies when no `value`/`data-value` is explicitly set. If you actually need a non-breaking space as the initial value, set it explicitly through the `value` option rather than relying on the element's markup.
 
 ## The server returns an error
 

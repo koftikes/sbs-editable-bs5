@@ -4,59 +4,70 @@ Options can be supplied either through JavaScript or, where supported, through `
 
 ## Core
 
-| Option | Description |
-| --- | --- |
-| `type` | Input type used for editing |
-| `mode` | Editing mode, such as popup or inline |
-| `value` | Initial value |
-| `name` | Field name sent to the server |
-| `title` | Editor title |
-| `required` | Enables required-value validation |
+| Option | Default | Description |
+| --- | --- | --- |
+| `type` | `'text'` | Input type used for editing |
+| `mode` | `'popup'` | Editing mode, such as popup or inline |
+| `value` | The element's text content — treated as `''` if empty or if it contains only whitespace/`&nbsp;` | Initial value |
+| `name` | The element's `id` attribute, or `'value'` if it has none | Field name sent to the server |
+| `title` | `''` | Editor title |
+| `required` | `false` | Enables required-value validation |
 
 ## Display
 
-| Option | Description |
-| --- | --- |
-| `emptyText` | Text displayed when the value is empty |
-| `showButtons` | Controls save/cancel buttons |
-| `popoverOptions` | Bootstrap popover configuration |
-| `render` | Converts the value into its display representation |
+| Option | Default | Description |
+| --- | --- | --- |
+| `emptyText` | `'N/A'` | Text displayed when the value is empty |
+| `showButtons` | `true` | Controls save/cancel buttons |
+| `popoverOptions` | `{}` | Bootstrap popover configuration |
+| `render` | None — the raw value is displayed as-is | Converts the value into its display representation |
 
 ## Networking
 
-| Option | Description |
-| --- | --- |
-| `url` | Server endpoint or dynamic URL function |
-| `send` | Controls whether a server request is performed |
-| `ajaxOptions` | Additional options for the default request |
-| `requestBuilder` | Fully replaces the default request — see [Server integration](server-integration.md) |
+| Option | Default | Description |
+| --- | --- | --- |
+| `url` | `null` — no request is sent unless `url` or `requestBuilder` is set | Server endpoint or dynamic URL function |
+| `ajaxOptions` | `{ method: 'POST' }` | Additional options for the default request |
+| `requestBuilder` | None — the built-in fetch-based request is used | Fully replaces the default request — see [Server integration](server-integration.md) |
 
 ## Callbacks
 
-| Option | Description |
-| --- | --- |
-| `success` | Called after a successful save |
-| `error` | Called when saving fails |
+| Option | Default | Description |
+| --- | --- | --- |
+| `success` | None | Called after a successful save |
+| `error` | None | Called when saving fails |
 
 ## `type: 'date'` / `type: 'datetime'` only
 
-| Option | Description |
-| --- | --- |
-| `format` | Value format sent to/from the server (day.js tokens) |
-| `displayFormat` | Format used for the value shown on the trigger |
+| Option | Default | Description |
+| --- | --- | --- |
+| `format` | `'YYYY-MM-DD'` for `date`, `'YYYY-MM-DDTHH:mm'` for `datetime` | Value format sent to/from the server (day.js tokens) |
+| `displayFormat` | Same as `format`'s default above — independent of whatever `format` is actually set to | Format used for the value shown on the trigger |
 
 ## `type: 'select'` only
 
-| Option | Description |
-| --- | --- |
-| `source` | The option list — array, `{value: text}` map, ajax URL, or a function. See [Input types and editing modes](input-types-and-modes.md#select) |
-| `sourceCache` | Cache an ajax `source` response by URL across fields on the page. Default: `true` |
+| Option | Default | Description |
+| --- | --- | --- |
+| `source` | `[]` | The option list — array, `{value: text}` map, ajax URL, or a function. See [Input types and editing modes](input-types-and-modes.md#select) |
+| `sourceCache` | `true` | Cache an ajax `source` response by URL across fields on the page |
 
 ## Escape hatch
 
-| Option | Description |
-| --- | --- |
-| `attributes` | Additional HTML attributes applied to the generated input. On `select`, `attributes.placeholder` is rendered as a disabled placeholder option — see [Input types and editing modes](input-types-and-modes.md#select) |
+| Option | Default | Description |
+| --- | --- | --- |
+| `attributes` | `{}` | Additional HTML attributes applied to the generated input. On `select`, `attributes.placeholder` is rendered as a disabled placeholder option — see [Input types and editing modes](input-types-and-modes.md#select) |
+
+## Native attributes
+
+A `disabled` attribute on the trigger element itself (no `data-` prefix) starts the widget disabled — equivalent to calling `disable()` right after construction (see [API reference](api-reference.md#disable)):
+
+```html
+<a data-type="text" disabled>John Doe</a>
+```
+
+Following native HTML boolean-attribute semantics, presence alone means disabled: `disabled`, `disabled=""`, `disabled="disabled"`, `disabled="true"`, and any other value are all treated as disabled. The only explicit opt-outs are `disabled="false"` and `disabled="0"` (case-insensitive).
+
+This is unrelated to `attributes.disabled`, which disables the *generated input* inside the popup/inline editor rather than the trigger itself.
 
 ## HTML data attributes
 

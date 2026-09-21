@@ -77,7 +77,22 @@ export default class Editable {
         this.init_text();
         this.init_style();
         this.init_accessibility();
+        if (Editable.isNativelyDisabled(this.element)) {
+            this.disable();
+        }
         this.element.dispatchEvent(new CustomEvent('init', { detail: { Editable: this } }));
+    }
+
+    private static readonly DISABLED_FALSY_VALUES = new Set(['false', '0']);
+
+    // The native `disabled` attribute on the trigger element itself (no `data-` prefix) —
+    // distinct from `options.attributes.disabled`, which targets the generated input.
+    // Bare `disabled`/`disabled=""` has no value to coerce, so native HTML boolean-attribute
+    // semantics apply (presence alone means true); only an explicit falsy value opts out.
+    private static isNativelyDisabled(el: HTMLElement): boolean {
+        if (!el.hasAttribute('disabled')) return false;
+        const value = (el.getAttribute('disabled') ?? '').trim().toLowerCase();
+        return !Editable.DISABLED_FALSY_VALUES.has(value);
     }
 
     // Options has no index signature by design (keeps the public shape autocomplete-friendly),
@@ -120,16 +135,21 @@ export default class Editable {
 
     init_options(): void {
         //priority date elements
-        this.get_opt('value', this.element.textContent ?? '');
+        const seedText = this.element.textContent ?? '';
+        // Markup often fills an otherwise-empty trigger with `&nbsp;` just to keep it visible/
+        // clickable before init (see demo/index.html) — treat that as no initial value rather
+        // than seeding it verbatim, or it silently fails to match a select's `value=""`
+        // placeholder option (U+00A0 !== '').
+        const isBlankSeed = seedText.replace(/ /g, ' ').trim() === '';
+        this.get_opt('value', isBlankSeed ? '' : seedText);
         this.get_opt('name', this.element.id || 'value');
         this.get_opt('title', '');
         this.get_opt('type', 'text');
-        this.get_opt('emptyText', 'Empty');
+        this.get_opt('emptyText', 'N/A');
         this.get_opt('mode', 'popup');
         this.get_opt('url', null);
         this.get_opt_object('ajaxOptions', {});
         this.options.ajaxOptions = Object.assign({ method: 'POST' }, this.options.ajaxOptions);
-        this.get_opt_bool('send', true);
         this.get_opt_bool('required', false);
         this.get_opt_bool('showButtons', true);
         if (this.options?.success && typeof this.options?.success === 'function') {

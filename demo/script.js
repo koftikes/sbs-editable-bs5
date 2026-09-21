@@ -167,7 +167,7 @@ register(document.getElementById('select-placeholder'), {
     type: 'select',
     title: 'Pick a status',
     required: true,
-    attributes: { placeholder: '— Select —' },
+    attributes: { placeholder: 'Select a Value' },
     source: [
         { value: '1', text: 'Draft' },
         { value: '2', text: 'Published' },

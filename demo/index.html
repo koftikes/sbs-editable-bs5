@@ -40,6 +40,13 @@
             font-size: 0.8rem;
             resize: vertical;
         }
+        pre {
+            padding: 9px 14px;
+            margin-bottom: 14px;
+            background-color: #f7f7f9;
+            border: 1px solid #e1e1e8;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -120,8 +127,7 @@
 new Editable(el, {
     type: 'text',
     attributes: { disabled: true },
-});
-        </pre>
+});</pre>
         </td>
     </tr>
     <tr>
@@ -336,7 +342,7 @@ new Editable(el, {
     </tr>
     <tr>
         <td>SourceCache - same ajax URL ×2, only one request fires (see Network tab)</td>
-        <td><span id="select-ajax-a">&nbsp;</span> / <span id="select-ajax-b">&nbsp;</span></td>
+        <td><span id="select-ajax-a" data-empty-text="Empty">&nbsp;</span> / <span id="select-ajax-b" data-empty-text="Empty">&nbsp;</span></td>
         <td><pre>
 ['select-ajax-a', 'select-ajax-b'].forEach((id) => {
   new Editable(document.getElementById(id), {
@@ -355,7 +361,7 @@ new Editable(el, {
   type: 'select',
   title: 'Pick a status',
   required: true,
-  attributes: { placeholder: '- Select -' },
+  attributes: { placeholder: 'Select a Value' },
   source: [
     { value: '1', text: 'Draft' },
     { value: '2', text: 'Published' },

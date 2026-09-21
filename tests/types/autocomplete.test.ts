@@ -29,7 +29,7 @@ describe('AutocompleteType — closed trigger label', () => {
         const el = mountTrigger();
         new Editable(el, { type: 'autocomplete', value: '999', source: USERS });
 
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
     });
 
     it('shows the raw value when it matches nothing and allowCustomValue is set', () => {
@@ -48,7 +48,7 @@ describe('AutocompleteType — closed trigger label', () => {
         const el = mountTrigger();
         new Editable(el, { type: 'autocomplete', source: USERS });
 
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
     });
 });
 
@@ -432,7 +432,7 @@ describe('AutocompleteType — ajax/async source (inherited from ListType)', () 
                 }),
         });
 
-        expect(el.textContent).toBe('Empty'); // not resolved yet
+        expect(el.textContent).toBe('N/A'); // not resolved yet
 
         resolveIt(USERS);
         await sleep(30);

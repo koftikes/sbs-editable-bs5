@@ -114,7 +114,7 @@ describe('InlineMode lifecycle', () => {
         el.querySelector<HTMLButtonElement>('.btn-danger')?.click();
         await sleep(150);
 
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
         expect(el.classList.contains('editable-element-empty')).toBe(true);
         expect(el.getBoundingClientRect().width).toBeGreaterThan(0);
     });

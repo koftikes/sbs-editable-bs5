@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-21
+
+### Added
+
+- A native `disabled` attribute on the trigger element itself (no `data-` prefix) now starts the widget disabled at init — equivalent to calling `disable()` right after construction. Follows HTML boolean-attribute presence semantics: `disabled`, `disabled=""`, `disabled="disabled"`, `disabled="true"`, and any other value all count as disabled, with an explicit `disabled="false"`/`disabled="0"` opt-out. Independent of the existing `attributes.disabled`, which disables the generated input rather than the trigger.
+
+### Changed
+
+- `emptyText` default changed from `'Empty'` to `'N/A'`.
+
+### Fixed
+
+- The default `value` — seeded from the trigger element's text content when no `value`/`data-value` is given — is now normalized to `''` when that content is empty or contains only whitespace/`&nbsp;`. Previously, markup like `<span>&nbsp;</span>` (a common way to keep an otherwise-empty trigger visible/clickable before init) seeded a literal non-breaking space as the value, which silently failed to match a `select`'s `value=""` placeholder option, leaving nothing selected when the editor opened.
+
+### Removed
+
+- `send` option. Its only distinct behavior — skipping the request while keeping `url` configured — had no real use case beyond what simply omitting `url` already provides for a local-only save.
+
 ## [1.2.0] - 2026-09-20
 
 ### Added
@@ -103,7 +121,8 @@ Initial release, published as `@sbsweb/editable-bs5`.
   read).
 - Generated `dist/` build output from version control.
 
-[Unreleased]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/koftikes/sbs-editable-bs5/compare/v1.0.1...v1.0.2

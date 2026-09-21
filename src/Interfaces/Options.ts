@@ -37,7 +37,6 @@ export default interface Options {
 
     // Networking — server-side persistence
     url?: string | ((context: Editable, newValue: string) => string) | null;
-    send?: boolean;
     ajaxOptions?: RequestInit;
     // Fully replaces the default POST+FormData request. See url/ajaxOptions for the common case.
     requestBuilder?: (

@@ -66,7 +66,7 @@ describe('SelectType', () => {
             source: [{ value: '1', text: 'Draft' }],
         });
 
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
     });
 
     it('still throws for invalid JSON that looks like an array', () => {
@@ -152,7 +152,7 @@ describe('SelectType — additional source shapes', () => {
 
         // Not resolved yet — same emptyText fallback as a genuine no-match, by design (see the
         // ListType.initText() discussion this round deferred: no special "still loading" state).
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
 
         await sleep(50);
 
@@ -245,6 +245,23 @@ describe('SelectType — placeholder (attributes.placeholder as a disabled prepe
         expect(select?.value).toBe('');
     });
 
+    it('is selected by default even when the trigger markup is `&nbsp;`-only filler', async () => {
+        const el = mountTrigger();
+        el.innerHTML = '&nbsp;';
+        new Editable(el, {
+            type: 'select',
+            attributes: { placeholder: '— Select —' },
+            source: [{ value: '1', text: 'Draft' }],
+        });
+
+        el.click();
+        await sleep(50);
+
+        const select = document.querySelector<HTMLSelectElement>('.popover select');
+        expect(select?.value).toBe('');
+        expect(select?.selectedIndex).toBe(0);
+    });
+
     it('is not selected when a real value is configured', async () => {
         const el = mountTrigger();
         new Editable(el, {
@@ -285,7 +302,7 @@ describe('SelectType — placeholder (attributes.placeholder as a disabled prepe
             source: [{ value: '1', text: 'Draft' }],
         });
 
-        expect(el.textContent).toBe('Empty');
+        expect(el.textContent).toBe('N/A');
     });
 });
 
@@ -315,7 +332,7 @@ describe('SelectType — source as an ajax URL', () => {
         new Editable(el, { type: 'select', value: '2', source: '/api/select-test/statuses' });
 
         expect(fetchMock).toHaveBeenCalledWith('/api/select-test/statuses', { method: 'GET' });
-        expect(el.textContent).toBe('Empty'); // not resolved yet
+        expect(el.textContent).toBe('N/A'); // not resolved yet
 
         await sleep(30);
 
@@ -528,7 +545,7 @@ describe('SelectType — inline mode, closed label independent of create()', () 
                 }),
         });
 
-        expect(el.textContent).toBe('Empty'); // not resolved yet, editor never opened
+        expect(el.textContent).toBe('N/A'); // not resolved yet, editor never opened
 
         resolveIt([
             { value: '1', text: 'Draft' },

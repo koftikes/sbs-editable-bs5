@@ -27,19 +27,6 @@ describe('local-only saves — no request is ever sent', () => {
         vi.unstubAllGlobals();
     });
 
-    it('send: false skips ajax entirely even though url is set', async () => {
-        const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response('', { status: 200 }));
-        vi.stubGlobal('fetch', fetchMock);
-
-        const el = mountTrigger();
-        new Editable(el, { type: 'text', url: '/post', send: false });
-
-        await submit(el, 'local value');
-
-        expect(fetchMock).not.toHaveBeenCalled();
-        expect(el.textContent).toBe('local value');
-    });
-
     it('no url configured also skips ajax and saves locally', async () => {
         const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response('', { status: 200 }));
         vi.stubGlobal('fetch', fetchMock);

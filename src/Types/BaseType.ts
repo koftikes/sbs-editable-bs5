@@ -109,7 +109,7 @@ export default class BaseType {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newValue = this.getValue();
-            if (this.context.options.send && this.context.options.url && this.context.getValue() !== newValue) {
+            if (this.context.options.url && this.context.getValue() !== newValue) {
                 this.showLoad();
                 let msg: string | undefined;
                 try {
